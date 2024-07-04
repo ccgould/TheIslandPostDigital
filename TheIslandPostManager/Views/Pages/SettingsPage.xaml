@@ -1,0 +1,215 @@
+﻿<Page x:Class="TheIslandPostManager.Views.Pages.SettingsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:TheIslandPostManager.Views.Pages"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Title="SettingsPage">
+
+    <StackPanel Orientation="Vertical" Margin="20">
+
+        <ui:CardExpander ContentPadding="0">
+            <ui:CardExpander.Icon>
+                <ui:SymbolIcon Filled="True" Symbol="Folder32"/>
+            </ui:CardExpander.Icon>
+            <ui:CardExpander.Header>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ui:TextBlock
+                Grid.Row="0"
+                Grid.Column="0"
+                FontTypography="Body"
+                Text="Directories" />
+                    <ui:TextBlock
+                Grid.Row="1"
+                Grid.Column="0"
+                Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}"
+                Text="Folders necessary for image processing" />
+                    <TextBlock
+                Grid.Row="0"
+                Grid.RowSpan="2"
+                Grid.Column="1"
+                Margin="0,0,16,0"
+                VerticalAlignment="Center"
+                Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}"
+                Text="{Binding ViewModel.AppVersion, Mode=OneWay}" />
+                </Grid>
+            </ui:CardExpander.Header>
+            <StackPanel>
+
+                <Grid Margin="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Input Directory:" Foreground="White" VerticalAlignment="Center"/>
+                    <TextBox x:Name="inputDirTxtB"  Grid.Column="1" IsReadOnly="True" Margin="10,0,10,0" Text="{Binding InputDirectory, Mode=TwoWay}"/>
+                    <ui:Button  Grid.Column="2" Content="Browse" x:Name="inputBrowseBtn" Click="inputBrowseBtn_Click"/>
+                </Grid>
+
+                <Grid Margin="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Output Directory:" Foreground="White" VerticalAlignment="Center"/>
+                    <TextBox Grid.Column="1" IsReadOnly="True" Margin="10,0,10,0" Text="{Binding OutputDirectory}"/>
+                    <ui:Button Grid.Column="2" Content="Browse" x:Name="outputBrowseBtn"  Command="{Binding OpenOutputBrowserCommand}"/>
+                </Grid>
+
+                <Grid Margin="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Printer Directory:" VerticalAlignment="Center" Foreground="White"/>
+                    <TextBox Grid.Column="1" IsReadOnly="True" Margin="10,0,10,0" Text="{Binding  PrinterDirectory}"/>
+                    <ui:Button Grid.Column="2" Content="Browse" x:Name="printerBrowseBtn"  Command="{Binding OpenPrinterBrowserCommand}"/>
+                </Grid>
+
+            </StackPanel>
+        </ui:CardExpander>
+
+        <ui:CardExpander ContentPadding="0">
+            <ui:CardExpander.Icon>
+                <ui:SymbolIcon Filled="True" Symbol="Icons24"/>
+            </ui:CardExpander.Icon>
+            <ui:CardExpander.Header>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ui:TextBlock
+                Grid.Row="0"
+                Grid.Column="0"
+                FontTypography="Body"
+                Text="Watermark" />
+                    <ui:TextBlock
+                Grid.Row="1"
+                Grid.Column="0"
+                Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}"
+                Text="Settings for the watermark placement and size"/>
+                    <TextBlock
+                Grid.Row="0"
+                Grid.RowSpan="2"
+                Grid.Column="1"
+                Margin="0,0,16,0"
+                VerticalAlignment="Center"
+                Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}"
+                Text="{Binding ViewModel.AppVersion, Mode=OneWay}" />
+                </Grid>
+            </ui:CardExpander.Header>
+            <StackPanel>
+                <Grid Margin="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="File Location:" VerticalAlignment="Center" Foreground="White"/>
+                    <TextBox Grid.Column="1" IsReadOnly="True" Margin="10,0,10,0" Text="{Binding WatermarkDirectory}"/>
+                    <ui:Button Grid.Column="2" Content="Browse" x:Name="watermarkBrowseBtn"  Command="{Binding OpenWatermarkBrowserCommand}"/>
+                </Grid>
+
+                <Grid Margin="16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ui:TextBlock
+                         Grid.Row="0"
+                         FontTypography="Body"
+                         Text="Watermark location" />
+                    <ui:TextBlock
+                         Grid.Row="1"
+                         Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}"
+                         Text="Select where the logo show display" />
+
+                    <ComboBox
+                    Grid.Column="1"
+                    MinWidth="200"                
+                    SelectedIndex="{Binding WatermarkPosition}">
+                        <ComboBoxItem Content="Top Left" />
+                        <ComboBoxItem Content="Top Right" />
+                        <ComboBoxItem Content="Center" />
+                        <ComboBoxItem Content="Bottom Left" />
+                        <ComboBoxItem Content="Bottom Right" />
+                    </ComboBox>
+                </Grid>
+
+                <Grid Margin="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Watermark Buffer" Foreground="White" VerticalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right">
+
+                        <StackPanel Orientation="Horizontal" Margin="10,0">
+                            <TextBlock Text="Width:" VerticalAlignment="Center"/>
+                            <TextBox Grid.Column="1" Margin="16" Text="{Binding WatermarkBufferW}"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="10,0">
+                            <TextBlock Text="Height:" VerticalAlignment="Center"/>
+                            <TextBox Grid.Column="1" Margin="16" Text="{Binding WatermarkBufferH}"/>
+                        </StackPanel>
+
+                    </StackPanel>
+                </Grid>
+
+                <Grid Margin="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Add Watermark to image" Foreground="White" VerticalAlignment="Center"/>
+                    <CheckBox Grid.Column="1" HorizontalAlignment="Right" IsChecked="{Binding AddWwatermark}"/>
+                </Grid>
+
+            </StackPanel>
+        </ui:CardExpander>
+
+        <Grid Margin="0,20,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="170"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="Image Quality:" FontSize="20" FontWeight="Bold" Foreground="White"/>
+
+            <Slider Grid.Column="1" TickPlacement="Both" TickFrequency="5" IsSnapToTickEnabled="True" Value="{Binding ImageQuality}" Minimum="0" Maximum="100" />
+
+            <StackPanel  Grid.Column="2" VerticalAlignment="Center" Margin="20,0,10,0">
+                <TextBlock Text="Output:" Foreground="White"/>
+                <TextBlock Text="{Binding ImageQuality}" Foreground="White"/>
+            </StackPanel>
+        </Grid>
+
+        <ui:Button Content="SAVE" Width="200" HorizontalAlignment="Center" CornerRadius="8" Click="SaveButton_Click"/>
+
+    </StackPanel>
+</Page>
