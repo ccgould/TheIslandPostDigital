@@ -1,0 +1,223 @@
+﻿<ui:ContentDialog x:Class="TheIslandPostManager.Dialogs.CompleterOrderDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:TheIslandPostManager.Dialogs"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             mc:Ignorable="d" 
+            Title="Cart"
+            d:DesignHeight="1000"
+            d:DesignWidth="1000"
+            ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
+            ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+            CloseButtonText="Cancel"
+            CloseButtonAppearance="Primary"
+            PrimaryButtonText="Complete Order"
+            PrimaryButtonAppearance="Success"
+            IsPrimaryButtonEnabled="True"
+            ScrollViewer.CanContentScroll="False"
+            Name="dataPage"
+            
+            >
+    <ui:ContentDialog.Resources>
+        <Style BasedOn="{StaticResource {x:Type ui:ContentDialog}}" TargetType="{x:Type local:CompleterOrderDialog}" />
+    </ui:ContentDialog.Resources>
+
+    <Grid Width="900">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+       
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="100"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Height="50" Background="{ui:ThemeResource ControlFillColorDefaultBrush}">
+                <Grid Height="40" Margin="20,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="Clerk:" VerticalAlignment="Center" Margin="10,0"/>
+                    <ComboBox Grid.Column="1"  x:Name="ClerkCmbox">
+                        <ComboBoxItem>Creswell G.</ComboBoxItem>
+                        <ComboBoxItem>Ashton R.</ComboBoxItem>
+                        <ComboBoxItem>Adewele G.</ComboBoxItem>
+                        <ComboBoxItem>Jordan H.</ComboBoxItem>
+                    </ComboBox>
+                    <TextBlock Grid.Column="2" Text="Passenger Name:" VerticalAlignment="Center" Margin="10,0"/>
+                    <ui:TextBox Grid.Column="3"  FontSize="14" x:Name="PassengerNameTxtb" Text="{Binding OrderService.CurrentOrder.Name, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <TextBlock Grid.Column="4" Text="Passenger Email:" VerticalAlignment="Center" Margin="10,0"/>
+                    <ui:TextBox Grid.Column="5"  x:Name="PassengerEmailTxtb" Text="{Binding OrderService.CurrentOrder.Email, UpdateSourceTrigger=PropertyChanged}"/>
+
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <ScrollViewer Grid.Column="0">
+                    <ItemsControl  x:Name="ListViewProducts" ItemsSource="{Binding PurchaseItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                
+                                <Border CornerRadius="5" Height="170" Width="130" Background="{ui:ThemeResource ControlFillColorDefaultBrush}" Margin="10" Padding="10">
+                                    <Border.InputBindings>
+                                        <MouseBinding MouseAction="LeftClick" Command="{Binding ElementName=dataPage, Path=ViewModel.ItemClickCommand}" CommandParameter="{Binding .}"/>
+                                    </Border.InputBindings>
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        
+                                        <TextBlock Text="{Binding Amount}"  Visibility="{Binding AmountVisible}" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.RowSpan="2" FontSize="100" FontWeight="Bold" Opacity=".2"/>
+                                        <TextBlock Text="{Binding Description}" TextWrapping="Wrap" FontSize="20"/>
+
+                                        <Grid Grid.Row="1">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Text="Cost" HorizontalAlignment="Left"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Cost}" HorizontalAlignment="Right"/>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </ScrollViewer
+                              >
+
+                <ScrollViewer Grid.Column="1">
+                    <Border CornerRadius="8" Background="#AE2d3436" Padding="30">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="30"/>
+                            </Grid.RowDefinitions>
+
+                            <Border Background="Gray">
+                                <TextBlock Text="Purchases" FontWeight="DemiBold" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                            </Border>
+
+                            <ui:ListView Grid.Row="1" ItemsSource="{Binding OrderService.CurrentOrder.Cart}">
+                                <ui:ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="3"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <ui:Flyout
+                                                Grid.Row="0"
+                                                IsOpen="{Binding IsFlyoutOpen, Mode=TwoWay}"
+                                                Placement="Top"
+                                                Closed="Flyout_Closed">
+                                                <StackPanel>
+                                                    <TextBlock Text="Amount: "/>
+                                                    <ui:NumberBox Value="{Binding Amount}"  Margin="0,10" ClearButtonEnabled="False" Minimum="1"/>    
+                                                </StackPanel>
+                                            </ui:Flyout>
+                                            <Border Background="White"/>
+                                            <TextBlock Text="{Binding Amount}" Grid.Column="1" Margin="20,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Description}" Grid.Column="2" Margin="20,0,0,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding TotalCost}" Grid.Column="3" VerticalAlignment="Center"/>
+                                            <ui:Button Grid.Column="4" ToolTip="Change Quantity" Command="{Binding ViewModel.ChangeQuantityCommand, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=ui:ContentDialog}}" CommandParameter="{Binding .}" Margin="10,0">
+                                                <ui:SymbolIcon Symbol="StoreMicrosoft16" FontSize="18"/>
+                                            </ui:Button>
+                                            <ui:Button Grid.Column="5" ToolTip="Delete" Command="{Binding ViewModel.DeleteCommand, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=ui:ContentDialog}}" CommandParameter="{Binding .}" Appearance="Primary">
+                                                <ui:SymbolIcon Symbol="Delete12" FontSize="18"/>
+                                            </ui:Button>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ui:ListView.ItemTemplate>
+                            </ui:ListView>
+
+                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,5,10" Grid.Row="2">
+                                <Run Text="10.00%: "/>
+                                <Run Text="{Binding OrderService.CurrentOrder.VatTotal}"/>
+                                <Run Text="{Binding OrderService.CurrentOrder.CartTotal,StringFormat=({0})}"/>
+                            </TextBlock>
+
+                            <Border Background="Gray" Grid.Row="3">
+                                <Grid Margin="10,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Text="{Binding OrderService.CurrentOrder.Date}"   VerticalAlignment="Center" Margin="10,0,0,0" HorizontalAlignment="Left"/>
+
+                                    <TextBlock Grid.Column="1" Text="{Binding OrderService.CurrentOrder.CartTotal}" FontWeight="DemiBold" VerticalAlignment="Center" Margin="10,0,0,0" HorizontalAlignment="Right"/>
+
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </ScrollViewer>
+            </Grid>
+
+        </Grid>
+
+        <StackPanel
+            Grid.Row="1"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center">
+
+            <TextBlock
+                x:Name="TextBlock"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                FontSize="16"
+                Foreground="Red"
+                Text="You must select a clerk to continue"
+                Visibility="Collapsed" />
+
+            <TextBlock
+                x:Name="TextBlock1"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                FontSize="16"
+                Foreground="Red"
+                Text="You must provide a passenger name to continue"
+                Visibility="Collapsed" />
+
+            <!--<CheckBox
+                x:Name="CheckBox"
+                Margin="0,15,0,0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                VerticalContentAlignment="Center"
+                Content="Agree"
+                FontSize="16" />-->
+        </StackPanel>
+    </Grid>
+</ui:ContentDialog>

@@ -1,12 +1,15 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.Windows.Media.Imaging;
+using TheIslandPostManager.Helpers;
+using TheIslandPostManager.Models;
 
 namespace TheIslandPostManager.Services;
 
 public class FileService : IFileService
 {
     private readonly IMessageService messageService;
+    private AppSettings? settings => App.AppConfig.GetSection("AppSettings") as AppSettings;
 
     public FileService(IMessageService messageService)
     {
@@ -37,7 +40,7 @@ public class FileService : IFileService
     {
         try
         {
-            if (File.Exists(path))
+            if (Directory.Exists(path))
             {
                 Process.Start("explorer.exe", path);
             }
@@ -115,5 +118,27 @@ public class FileService : IFileService
         }
 
         return null;
+    }
+
+    public bool CreateDirectory(string directory)
+    {
+        if(Directory.Exists(directory))
+        {
+            return true;
+        }
+
+        Directory.CreateDirectory(directory);
+
+        return false;
+    }
+
+    public async Task Copy(List<Tuple<string, string>> file)
+    {
+        await Copier.CopyFiles(file, (prog, fileName) =>
+        {
+            var fileNameWEx = Path.GetFileName(fileName);
+            var result = Path.Combine(settings.PrinterDirectory, fileNameWEx);
+            File.Move(fileName, result, true);
+        });
     }
 }

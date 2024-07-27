@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Threading;
 using TheIslandPostManager.Models;
 using TheIslandPostManager.Services;
+using TheIslandPostManager.Windows;
 using Wpf.Ui;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
 
@@ -55,19 +56,28 @@ public partial class App
                 services.AddSingleton<ISnackbarService, SnackbarService>();
                 services.AddSingleton<ViewModels.MainWindowViewModel>();
 
+                services.AddSingleton<IContentDialogService, ContentDialogService>();
+
                 // Views and ViewModels
                 services.AddSingleton<Views.Pages.DashboardPage>();
                 services.AddSingleton<ViewModels.DashboardViewModel>();
                 services.AddSingleton<Views.Pages.OrdersPage>();
                 services.AddSingleton<ViewModels.OrdersPageViewModel>();
-                
+                services.AddSingleton<Views.Pages.PendingOrdersPage>();
+                services.AddSingleton<ViewModels.PendingOrdersPageViewModel>();
+
                 //services.AddSingleton<ViewModels.DataViewModel>();
 
                 services.AddSingleton<Views.Pages.SettingsPage>();
                 services.AddSingleton<ViewModels.SettingsViewModel>();
 
+                //services.AddSingleton<CustomerWindow>();
+                //services.AddSingleton<ViewModels.CustomerWindowViewmodel>();
+
                 // Configuration
                 services.Configure<AppConfig>(context.Configuration.GetSection(nameof(AppConfig)));
+
+
             }
         )
         .Build();

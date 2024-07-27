@@ -1,22 +1,29 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Mysqlx.Crud;
+using TheIslandPostManager.Dialogs;
 using TheIslandPostManager.Models;
 using TheIslandPostManager.Services;
+using TheIslandPostManager.Windows;
+using Wpf.Ui;
 using Order = TheIslandPostManager.Models.Order;
 
 namespace TheIslandPostManager.ViewModels;
 public partial class DashboardViewModel : ObservableObject
 {
-    public IOrderService OrderService { get; set; }
+    [ObservableProperty] private IOrderService orderService;
     [ObservableProperty] private IFileService fileService;
     [ObservableProperty] private IImageService imageService;
+    private readonly IMessageService messageService;
+    private readonly IContentDialogService contentDialogService;
 
-    public DashboardViewModel(IOrderService orderService,IFileService fileService,IImageService imageService)
+    public DashboardViewModel(IOrderService orderService,IFileService fileService,IImageService imageService,IMessageService messageService, IContentDialogService contentDialogService)
     {
         OrderService = orderService;
-        this.fileService = fileService;
-        this.imageService = imageService;
+        FileService = fileService;
+        ImageService = imageService;
+        this.messageService = messageService;
+        this.contentDialogService = contentDialogService;
+        OrderService.CreateOrder();
     }
 
     public async Task Open()
@@ -24,11 +31,31 @@ public partial class DashboardViewModel : ObservableObject
         await ImageService.OpenImageDialogBrowser();
     }
 
-
     [RelayCommand]
-    private void CompleteOrder(Order order)
+    private void CancelOrder(Order order)
+    {
+        OrderService.Cancel(order);
+    }
+
+    public async Task CreateOrder()
     {
 
+        var result = await messageService.ShowMessage("Copy Images", "Would you like to copy the images from the current order to this new ?","Cancel",Wpf.Ui.Controls.ControlAppearance.Primary,true,"Yes",true,"No");
+
+        if (result == Wpf.Ui.Controls.MessageBoxResult.Primary)
+        {
+            await OrderService.CreateOrder(true);
+        }
+
+        if(result == Wpf.Ui.Controls.MessageBoxResult.Secondary)
+        {
+            await OrderService.CreateOrder(false);
+        }
+    }
+
+    internal async Task CancelAllOrders()
+    {
+        await OrderService.CancelAll();
     }
 
     [RelayCommand]
@@ -43,7 +70,7 @@ public partial class DashboardViewModel : ObservableObject
     [RelayCommand]
     private void ImageClick(Image image)
     {
-        ImageService.CurrentImage = image;
+        //OrderService.CurrentOrder.currentImage
         //Service.SelectedImage = image;
         //Service.SelectedImage.HDImage = image.Image;
        // _ = _navigationService.Navigate(typeof(ImageViewer));
@@ -97,5 +124,42 @@ public partial class DashboardViewModel : ObservableObject
     {
         if (image.PrintAmount == 1) return;
         image.PrintAmount -= 1;
+    }
+
+    internal void OpenCustomerView()
+    {
+        CustomerWindow customerWindow = new CustomerWindow(new CustomerWindowViewmodel(OrderService));
+        customerWindow.Show();
+    }
+
+    [RelayCommand]
+    private async Task GetCustomerInformation(Order order)
+    {
+        OrderService.CurrentOrder = order;
+        OrderService.CurrentOrder.IsCompleteingOrder = true;
+
+        var termsOfUseContentDialog = new CompleterOrderDialog(contentDialogService.GetContentPresenter(),OrderService,messageService);
+
+        _ = await termsOfUseContentDialog.ShowAsync();
+    }
+
+    internal void PreviousPhoto()
+    {
+        OrderService.CurrentOrder.PreviousPhoto();
+    }
+
+    internal void NextPhoto()
+    {
+        OrderService.CurrentOrder.NextPhoto();
+    }
+
+    internal void SelectPhoto()
+    {
+        OrderService.CurrentOrder.ApproveImage();
+    }
+
+    internal void AttemptDislikePhoto()
+    {
+        OrderService.CurrentOrder.MaybeImage();
     }
 }

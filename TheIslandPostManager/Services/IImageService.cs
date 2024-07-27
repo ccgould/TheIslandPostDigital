@@ -1,17 +1,16 @@
-﻿
-using System.Collections.ObjectModel;
+﻿using System.Drawing.Imaging;
 using TheIslandPostManager.Models;
 
 namespace TheIslandPostManager.Services;
 
 public interface IImageService
 {
-    Image CurrentImage { get; set; }
-    ObservableCollection<Image> CurrentImages { get; set; }
+    //Image CurrentImage { get; set; }
+    //ObservableCollection<Image> CurrentImages { get; set; }
 
     void AddImage(Image image);
     Task DeleteAllImages();
-    void DeleteImage(Image image);
+    Task DeleteImage(Image image);
     void DeSelectAllImages();
     Task OpenImageDialogBrowser();
     void PrintAllImages();

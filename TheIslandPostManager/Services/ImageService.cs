@@ -1,50 +1,29 @@
-﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.IO;
+﻿using System.IO;
 using TheIslandPostManager.Models;
 using Wpf.Ui.Controls;
-using Wpf.Ui;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using TheIslandPostManager.Helpers;
 using Image = TheIslandPostManager.Models.Image;
-using System.Configuration;
 using CommunityToolkit.Mvvm.ComponentModel;
+using System.Drawing.Imaging;
+using System.Drawing;
+using System.Drawing.Drawing2D;
 
 namespace TheIslandPostManager.Services;
 
 public partial class ImageService : ObservableObject, IImageService
 {
-    [ObservableProperty] private Image currentImage;
-    [ObservableProperty] private ObservableCollection<Image> currentImages;
+    //[ObservableProperty] private Image currentImage;
+    //[ObservableProperty] private ObservableCollection<Image> currentImages;
     private int currentIndex;
     private readonly IMessageService messageService;
     private readonly IOrderService orderService;
 
     public ImageService(IMessageService messageService,IOrderService orderService)
     {
-        //Demo();
         this.messageService = messageService;
         this.orderService = orderService;
-        CurrentImages = new();
-    }
-
-    private void Demo()
-    {
-        currentImages =
-    [
-    new Image()
-            {
-                Name = "Default",
-                ImageUrl = $"E:\\Test\\_JEP5420.JPG",
-
-            }
-    ];
-
-        currentImage = new Image
-        {
-            Name = "Default",
-            ImageUrl = "E:\\Test\\_JEP5420.JPG"
-        };
+        //CurrentImages = new();
     }
 
     public async Task OpenImageDialogBrowser()
@@ -70,31 +49,47 @@ public partial class ImageService : ObservableObject, IImageService
                 //IsBusy = true;
                 //CurrentAmount++;
                 //ProgressBarValue = prog;
+                
                 AddImage(new Image(fileName));
             });
 
             //TotalImages = 0;
             //CurrentAmount = 0;
             //ProgressBarValue = 0;
-            await messageService.ShowMessage("Import Finished", "All Images have been imported successfully");
+            messageService.ShowSnackBarMessage("Import Finished", "All Images have been imported successfully");
             //IsBusy = false;
         }
     }
 
-    public void DeleteImage(Image image)
+    public async Task DeleteImage(Image image)
     {
-        currentImages.Remove(image);
+        var result = await messageService.ShowMessage("Delete", $"Are you sure you would like to delete {image.Name}");
+
+        if(result == MessageBoxResult.Primary)
+        {
+            GetCurrentOrder().CurrentImages.Remove(image);
+        }
     }
 
     public void AddImage(Image image)
     {
-        image.Index = CurrentImages.Count  + 1;
-        CurrentImages.Add(image);
+        image.Index = GetCurrentOrder().CurrentImages.Count + 1;
+        GetCurrentOrder().CurrentImages.Add(image);
+    }
+
+    private Order GetCurrentOrder()
+    {
+        if(orderService.CurrentOrder is null)
+        {
+            orderService.CreateOrder();
+        }
+
+        return orderService.CurrentOrder;
     }
 
     public void ReplaceImage(string path, Image image)
     {
-        var imageObj = currentImages.FirstOrDefault(x => x.ImageUrl.Equals(path));
+        var imageObj = GetCurrentOrder().CurrentImages.FirstOrDefault(x => x.ImageUrl.Equals(path));
 
         //Figure out best way relace path and reload image or replace object
 
@@ -124,7 +119,7 @@ public partial class ImageService : ObservableObject, IImageService
 
     public void SelectAllImages()
     {
-        foreach (Image image in CurrentImages)
+        foreach (Image image in GetCurrentOrder().CurrentImages)
         {
             image.IsSelected = true;
             orderService.AddImageToOrder(image);
@@ -133,7 +128,7 @@ public partial class ImageService : ObservableObject, IImageService
 
     public void DeSelectAllImages()
     {
-        foreach (Image image in CurrentImages)
+        foreach (Image image in GetCurrentOrder().CurrentImages)
         {
             image.IsSelected = false;
             orderService.RemoveImageFromOrder(image);
@@ -142,7 +137,7 @@ public partial class ImageService : ObservableObject, IImageService
 
     public void PrintAllImages()
     {
-        foreach (Image image in CurrentImages)
+        foreach (Image image in GetCurrentOrder().CurrentImages)
         {
             image.IsPrintable = true;
             image.IsSelected = true;
@@ -164,15 +159,15 @@ public partial class ImageService : ObservableObject, IImageService
 
         var result = await uiMessageBox.ShowDialogAsync();
 
-        if (result == Wpf.Ui.Controls.MessageBoxResult.Primary)
+        if (result == MessageBoxResult.Primary)
         {
-            for (int i = CurrentImages.Count - 1; i >= 0; i--)
+            for (int i = GetCurrentOrder().CurrentImages.Count - 1; i >= 0; i--)
             {
-                var image = CurrentImages[i];
+                var image = GetCurrentOrder().CurrentImages[i];
                 image.HDImage = null;
                 image.LowImage = null;
-                File.Delete(CurrentImages[i].ImageUrl);
-                CurrentImages.Remove(CurrentImages[i]);
+                File.Delete(GetCurrentOrder().CurrentImages[i].ImageUrl);
+                GetCurrentOrder().CurrentImages.Remove(GetCurrentOrder().CurrentImages[i]);
                 UpdateImagesIndex();
             }
             GC.Collect();
@@ -184,30 +179,31 @@ public partial class ImageService : ObservableObject, IImageService
 
     public void UpdateImagesIndex()
     {
-        for (int i = 0; i < CurrentImages.Count; i++)
+        for (int i = 0; i < GetCurrentOrder().CurrentImages.Count; i++)
         {
-            CurrentImages[i].Index = i + 1;
+            GetCurrentOrder().CurrentImages[i].Index = i + 1;
         }
     }
 
     public void SetOrder(Order order)
     {
-        DeSelectAllImages();
-        foreach (Image image in CurrentImages)
-        {
-            image.IsPending = false;
-            image.IsSelected = false;
-            image.IsPrintable = false;
-            image.PrintAmount = 1;
-        }
+        //DeSelectAllImages();
+        //foreach (Image image in GetCurrentOrder().CurrentImages)
+        //{
+        //    image.IsPending = false;
+        //    image.IsSelected = false;
+        //    image.IsPrintable = false;
+        //    image.PrintAmount = 1;
+        //}
     }
 
     public void UpdateOrder(Order obj)
     {
 
         // The Print amount is changing because its still referencing the same object you have to clone the object
+        return;
 
-        foreach (Image image in CurrentImages)
+        foreach (Image image in GetCurrentOrder().CurrentImages)
         {
             foreach(var imageObj in obj.ApprovedImages)
             {
@@ -226,5 +222,115 @@ public partial class ImageService : ObservableObject, IImageService
             //    }
             //}
         }
+    }
+
+    //internal void AddWaterMark(string personName, string originalImage, Action<string, string> callback)
+    //{
+    //    var fileName = Path.GetFileNameWithoutExtension(originalImage);
+    //    var ext = Path.GetExtension(originalImage);
+    //    var newFileName = $"{fileName}_watermarked{ext}";
+    //    var origLocation = Path.GetDirectoryName(originalImage);
+
+    //    using (System.Drawing.Image image = System.Drawing.Image.FromFile(originalImage))
+    //    {
+    //        ImageHelpers.Rotate(image);
+
+    //        if (_applicationSaveService.ApplicationSaveData.AddWaterMarkToImage)
+    //        {
+    //            using (System.Drawing.Image watermarkImage = System.Drawing.Image.FromFile(_watermark))
+    //            {
+    //                var newWatermark = ResizeImage(watermarkImage,
+    //                    new Size(watermarkImage.Width * 2, watermarkImage.Height * 2));
+
+    //                using (Graphics imageGraphics = Graphics.FromImage(image))
+    //                using (TextureBrush watermarkBrush = new TextureBrush(newWatermark))
+    //                {
+    //                    int x = 0;
+    //                    int y = 0;
+
+    //                    switch (_applicationSaveService.ApplicationSaveData.WatermarkPosition)
+    //                    {
+    //                        case 0:
+    //                            x = _applicationSaveService.ApplicationSaveData.ImageWidth;
+    //                            y = _applicationSaveService.ApplicationSaveData.ImageHeight;
+    //                            break;
+    //                        case 1:
+    //                            x = (image.Width - newWatermark.Width - _applicationSaveService.ApplicationSaveData.ImageWidth);
+    //                            y = _applicationSaveService.ApplicationSaveData.ImageHeight;
+    //                            break;
+    //                        case 2:
+    //                            x = (image.Width - newWatermark.Width) / 2;
+    //                            y = (image.Height - newWatermark.Height) / 2;
+    //                            break;
+    //                        case 3:
+    //                            x = _applicationSaveService.ApplicationSaveData.ImageWidth;
+    //                            y = (image.Height - newWatermark.Height - _applicationSaveService.ApplicationSaveData.ImageHeight);
+    //                            break;
+    //                        case 4:
+    //                            x = (image.Width - newWatermark.Width - _applicationSaveService.ApplicationSaveData.ImageWidth);
+    //                            y = (image.Height - newWatermark.Height - _applicationSaveService.ApplicationSaveData.ImageHeight);
+    //                            break;
+    //                    }
+
+    //                    watermarkBrush.TranslateTransform(x, y);
+    //                    imageGraphics.FillRectangle(watermarkBrush, new Rectangle(new Point(x, y), new Size(newWatermark.Width + 1, newWatermark.Height)));
+    //                }
+    //            }
+    //        }
+
+    //        // Encoder parameter for image quality 
+    //        EncoderParameter qualityParam = new EncoderParameter(Encoder.Quality, _applicationSaveService.ApplicationSaveData.ImageQuality);
+    //        // JPEG image codec 
+    //        ImageCodecInfo jpegCodec = ImageHelpers.GetEncoderInfo("image/jpeg");
+    //        EncoderParameters encoderParams = new EncoderParameters(1);
+    //        encoderParams.Param[0] = qualityParam;
+
+    //        var personalDir = Path.Combine(_outPutFolder, ReplaceInvalidChars(personName));
+
+    //        if (!Directory.Exists(personalDir))
+    //        {
+    //            Directory.CreateDirectory(personalDir);
+    //        }
+
+    //        var newFileLocation = Path.Combine(personalDir, newFileName);
+    //        image.Save(newFileLocation, jpegCodec, encoderParams);
+    //        callback?.Invoke(newFileLocation, newFileName);
+    //    }
+    //}
+
+    private string ReplaceInvalidChars(string filename)
+    {
+        return string.Join("_", filename.Split(Path.GetInvalidFileNameChars()));
+    }
+
+    private static System.Drawing.Image ResizeImage(System.Drawing.Image imgToResize, Size size)
+    {
+        int sourceWidth = imgToResize.Width;
+        int sourceHeight = imgToResize.Height;
+
+        float nPercent = 0;
+        float nPercentW = 0;
+        float nPercentH = 0;
+
+        nPercentW = ((float)size.Width / (float)sourceWidth);
+        nPercentH = ((float)size.Height / (float)sourceHeight);
+
+        if (nPercentH < nPercentW)
+            nPercent = nPercentH;
+        else
+            nPercent = nPercentW;
+
+        int destWidth = (int)(sourceWidth * nPercent);
+        int destHeight = (int)(sourceHeight * nPercent);
+
+        System.Drawing.Bitmap b = new System.Drawing.Bitmap(destWidth, destHeight);
+        //b = ChangeImageOpacity(b, 0.1);
+
+        Graphics g = Graphics.FromImage((System.Drawing.Image)b);
+        g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+        g.DrawImage(imgToResize, 0, 0, destWidth, destHeight);
+        g.Dispose();
+
+        return (System.Drawing.Image)b;
     }
 }

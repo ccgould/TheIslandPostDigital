@@ -20,6 +20,18 @@ xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                             <ui:Button
                                 Margin="0,0,5,0"
                                 Command="{Binding Path=TemplateButtonCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                                CommandParameter="openCustmerView"
+                                ToolTip="Open Customer View">
+                                <ui:SymbolIcon Symbol="ViewDesktop20" FontSize="18"/>
+                            </ui:Button>
+                            <Separator
+                            Grid.Column="2"
+                            Height="16"
+                            Margin="4,0,4,0" />
+
+                            <ui:Button
+                                Margin="0,0,5,0"
+                                Command="{Binding Path=TemplateButtonCommand, RelativeSource={RelativeSource TemplatedParent}}"
                                 CommandParameter="importPhotos"
                                 ToolTip="Import">
                                 <ui:SymbolIcon Symbol="ImageAdd24" FontSize="18"/>
@@ -52,15 +64,37 @@ xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                                 ToolTip="Delete All" >
                                 <ui:SymbolIcon Symbol="Delete12" FontSize="18"/>
                             </ui:Button>
+                            <Separator
+                            Grid.Column="2"
+                            Height="16"
+                            Margin="4,0,4,0" />
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Filter" VerticalAlignment="Center"/>
+                                <ComboBox x:Name="filterCombo" SelectedIndex="0" Margin="10" Width="150">
+                                    <ComboBoxItem>All</ComboBoxItem>
+                                    <ComboBoxItem>Selected</ComboBoxItem>
+                                    <ComboBoxItem>Maybe</ComboBoxItem>
+                                    <ComboBoxItem>Both</ComboBoxItem>
+                                </ComboBox>
+                            </StackPanel>
                         </StackPanel>
 
-                        <ui:Button
-                                Grid.Column="1"
-                                Command="{Binding Path=TemplateButtonCommand, RelativeSource={RelativeSource TemplatedParent}}"
-                                CommandParameter="createOrder"
-                                ToolTip="Create Order">
-                            <ui:SymbolIcon Symbol="Add12" FontSize="18"/>
-                        </ui:Button>
+                        <StackPanel Orientation="Horizontal" Grid.Column="1">
+                            <ui:Button
+                                    Command="{Binding Path=TemplateButtonCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                                    CommandParameter="createOrder"
+                                    ToolTip="Create Order">
+                                <ui:SymbolIcon Symbol="Add12" FontSize="18"/>
+                            </ui:Button>
+                            <ui:Button
+                                    Margin="10,0,0,0"
+                                    Grid.Column="1"
+                                    Command="{Binding Path=TemplateButtonCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                                    CommandParameter="pendOrder"
+                                    ToolTip="Pend Order">
+                                <ui:SymbolIcon Symbol="Clock12" FontSize="18"/>
+                            </ui:Button>
+                        </StackPanel>
                         <Separator
                             Grid.Column="2"
                             Height="16"

@@ -48,19 +48,31 @@ public partial class Image : ObservableObject, IImage
          LoadImage(path);
     }
 
-    public Image Copy()
+    public Image Copy(bool reset = false)
     {
         var result = new Image();
 
-        result.PrintAmount = PrintAmount;
-        result.Name = Name;
-        result.ImageUrl = ImageUrl;
-        result.LowImage = LowImage;
-        result.HDImage = HDImage;
-        result.IsSelected = IsSelected;
-        result.IsPending = IsPending;
-        result.IsPrintable = IsPrintable;
-        result.Index = Index;
+        if(reset)
+        {
+            result.Name = Name;
+            result.ImageUrl = ImageUrl;
+            result.LowImage = LowImage;
+            result.HDImage = HDImage;
+            result.Index = Index;
+        }
+        else
+        {
+            result.PrintAmount = PrintAmount;
+            result.Name = Name;
+            result.ImageUrl = ImageUrl;
+            result.LowImage = LowImage;
+            result.HDImage = HDImage;
+            result.IsSelected = IsSelected;
+            result.IsPending = IsPending;
+            result.IsPrintable = IsPrintable;
+            result.Index = Index;
+        }
+
 
         return result;
     }
@@ -83,6 +95,7 @@ public partial class Image : ObservableObject, IImage
         HDImage = _fileService.LoadImageFile(path, true);
         LowImage = _fileService.LoadImageFile(path);
     }
+    
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
     {
         base.OnPropertyChanged(e);

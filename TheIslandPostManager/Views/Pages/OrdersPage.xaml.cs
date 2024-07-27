@@ -15,5 +15,12 @@ public partial class OrdersPage : INavigableView<OrdersPageViewModel>
         DataContext = this;
 
         InitializeComponent();
+
+        CalendarDatePicker.Click += CalendarDatePicker_Click;
+    }
+
+    private void CalendarDatePicker_Click(object sender, System.Windows.RoutedEventArgs e)
+    {
+
     }
 }

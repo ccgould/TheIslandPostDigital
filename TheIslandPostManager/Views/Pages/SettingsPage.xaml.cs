@@ -34,26 +34,26 @@ public partial class SettingsPage : Page
         ConfigurationManager.RefreshSection("AppSettings");
     }
 
-    private void inputBrowseBtn_Click(object sender, RoutedEventArgs e)
-    {
-        var dialog = new CommonOpenFileDialog();
-        dialog.IsFolderPicker = true;
-        CommonFileDialogResult result = dialog.ShowDialog();
+    //private void inputBrowseBtn_Click(object sender, RoutedEventArgs e)
+    //{
+    //    var dialog = new CommonOpenFileDialog();
+    //    dialog.IsFolderPicker = true;
+    //    CommonFileDialogResult result = dialog.ShowDialog();
 
-        if (result == CommonFileDialogResult.Ok)
-        {
-            inputDirTxtB.Text = dialog.FileName;
+    //    if (result == CommonFileDialogResult.Ok)
+    //    {
+    //        inputDirTxtB.Text = dialog.FileName;
 
-            var f = App.AppConfig.GetSection("AppSettings") as AppSettings;
-            f.InputDirectory = dialog.FileName;
-            App.AppConfig.Save();
+    //        var f = App.AppConfig.GetSection("AppSettings") as AppSettings;
+    //        f.InputDirectory = dialog.FileName;
+    //        App.AppConfig.Save();
 
 
 
-           // AddOrUpdateAppSettings("inputDirectory", dialog.FileName);
-        }
+    //       // AddOrUpdateAppSettings("inputDirectory", dialog.FileName);
+    //    }
 
-    }
+    //}
 
 
     public static void AddOrUpdateAppSettings(string key, string value)
@@ -76,6 +76,54 @@ public partial class SettingsPage : Page
         catch (ConfigurationErrorsException)
         {
             Console.WriteLine("Error writing app settings");
+        }
+    }
+
+    private void outputBrowseBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new CommonOpenFileDialog();
+        dialog.IsFolderPicker = true;
+        CommonFileDialogResult result = dialog.ShowDialog();
+
+        if (result == CommonFileDialogResult.Ok)
+        {
+            outputDirTxtB.Text = dialog.FileName;
+
+            var f = App.AppConfig.GetSection("AppSettings") as AppSettings;
+            f.OutputDirectory = dialog.FileName;
+            App.AppConfig.Save();
+        }
+    }
+
+    private void printerDirTxtB_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new CommonOpenFileDialog();
+        dialog.IsFolderPicker = true;
+        CommonFileDialogResult result = dialog.ShowDialog();
+
+        if (result == CommonFileDialogResult.Ok)
+        {
+            printerDirTxtB.Text = dialog.FileName;
+
+            var f = App.AppConfig.GetSection("AppSettings") as AppSettings;
+            f.PrinterDirectory = dialog.FileName;
+            App.AppConfig.Save();
+        }
+    }
+
+    private void watermarkBrowseBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new CommonOpenFileDialog();
+
+        CommonFileDialogResult result = dialog.ShowDialog();
+
+        if (result == CommonFileDialogResult.Ok)
+        {
+            watermarkDirTxtB.Text = dialog.FileName;
+
+            var f = App.AppConfig.GetSection("AppSettings") as AppSettings;
+            f.WatermarkDirectory = dialog.FileName;
+            App.AppConfig.Save();
         }
     }
 }

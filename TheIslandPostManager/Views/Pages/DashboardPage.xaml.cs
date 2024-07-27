@@ -1,4 +1,5 @@
-﻿using TheIslandPostManager.ViewModels;
+﻿using System.Windows.Input;
+using TheIslandPostManager.ViewModels;
 using Wpf.Ui.Controls;
 
 namespace TheIslandPostManager.Views.Pages;
@@ -13,9 +14,24 @@ public partial class DashboardPage : INavigableView<DashboardViewModel>
     {
         ViewModel = viewModel;
         DataContext = this;
-
         InitializeComponent();
+        dataPage.Focus();
     }
+
+    //private void ListView_PreviewKeyDown(object sender, KeyEventArgs e)
+    //{
+    //    switch (e.Key)
+    //    {
+    //        case Key.Left:
+    //        case Key.Right:
+    //        case Key.Up:
+    //        case Key.Down:
+    //            e.Handled = true;
+    //            break;
+    //        default:
+    //            break;
+    //    }
+    //}
 
     private void txtNum_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
     {
@@ -30,5 +46,30 @@ public partial class DashboardPage : INavigableView<DashboardViewModel>
     private void cmdDown_Click(object sender, System.Windows.RoutedEventArgs e)
     {
 
+    }
+
+    private void ordersListBox_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case Key.Left:
+                ViewModel.PreviousPhoto();
+                e.Handled = true;
+                break;
+            case Key.Right:
+                ViewModel.NextPhoto();
+                e.Handled = true;
+                break;
+            case Key.Up:
+                ViewModel.SelectPhoto();
+                e.Handled = true;
+                break;
+            case Key.Down:
+                ViewModel.AttemptDislikePhoto();
+                e.Handled = true;
+                break;
+            default:
+                break;
+        }
     }
 }

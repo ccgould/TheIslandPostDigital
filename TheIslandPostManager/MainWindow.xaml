@@ -35,8 +35,12 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <ui:TitleBar
+            Title="{Binding ViewModel.ApplicationTitle, Mode=OneWay}"
+            Grid.Row="0"
+            Icon="pack://application:,,,/Assets/applicationIcon-256.png" />
 
-        <ui:NavigationView
+           <ui:NavigationView
             x:Name="RootNavigation"
             Grid.Row="1"
             PaneDisplayMode="LeftFluent"
@@ -56,7 +60,7 @@
 
 
                     </Grid>
-                    <controls:ImagesControlModule Margin="0,10,0,0" NavigationView="{Binding ElementName=RootNavigation}" />
+                    <controls:ImagesControlModule x:Name="imageControlModule" Margin="0,10,0,0" NavigationView="{Binding ElementName=RootNavigation}" />
                 </StackPanel>
             </ui:NavigationView.Header>
             <ui:NavigationView.ContentOverlay>
@@ -68,10 +72,7 @@
 
         <ContentPresenter x:Name="RootContentDialog" Grid.Row="1" />
 
-        <ui:TitleBar
-            Title="{Binding ViewModel.ApplicationTitle, Mode=OneWay}"
-            Grid.Row="0"
-            Icon="pack://application:,,,/Assets/applicationIcon-256.png" />
+
 
     </Grid>
 

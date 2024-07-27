@@ -2,10 +2,12 @@
 using System.Collections.ObjectModel;
 using Wpf.Ui.Controls;
 using Wpf.Ui;
+using TheIslandPostManager.Services;
 
 namespace TheIslandPostManager.ViewModels;
 public partial class MainWindowViewModel : ObservableObject
 {
+    [ObservableProperty] private IOrderService orderService;
     private bool _isInitialized = false;
 
     [ObservableProperty]
@@ -20,10 +22,11 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<MenuItem> _trayMenuItems = new();
 
-    public MainWindowViewModel(INavigationService navigationService)
+    public MainWindowViewModel(INavigationService navigationService,IOrderService orderService)
     {
         if (!_isInitialized)
             InitializeViewModel();
+        this.orderService = orderService;
     }
 
     private void InitializeViewModel()
@@ -43,6 +46,13 @@ public partial class MainWindowViewModel : ObservableObject
                 Content = "Orders",
                 Icon = new SymbolIcon { Symbol = SymbolRegular.DataHistogram24 },
                 TargetPageType = typeof(Views.Pages.OrdersPage)
+            }
+            ,
+            new NavigationViewItem()
+            {
+                Content = "Pending Orders",
+                Icon = new SymbolIcon { Symbol = SymbolRegular.Clock24 },
+                TargetPageType = typeof(Views.Pages.PendingOrdersPage)
             }
         };
 

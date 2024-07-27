@@ -1,5 +1,7 @@
 ﻿using System.Windows;
+using TheIslandPostManager.Controls;
 using TheIslandPostManager.ViewModels;
+using TheIslandPostManager.Windows;
 using Wpf.Ui;
 using Wpf.Ui.Controls;
 
@@ -11,13 +13,19 @@ public partial class MainWindow : INavigationWindow
 {
     public MainWindowViewModel ViewModel { get; }
 
+
+
     public MainWindow(
         MainWindowViewModel viewModel,
         IPageService pageService,
-        INavigationService navigationService
+        INavigationService navigationService,
+        ISnackbarService snackbarService,
+        IContentDialogService contentDialogService
     )
     {
-        ViewModel = viewModel;
+        //imageControlModule. += ImageControlModule_myEvent;
+
+ViewModel = viewModel;
         DataContext = this;
 
         Wpf.Ui.Appearance.SystemThemeWatcher.Watch(this);
@@ -26,6 +34,13 @@ public partial class MainWindow : INavigationWindow
         SetPageService(pageService);
 
         navigationService.SetNavigationControl(RootNavigation);
+        snackbarService.SetSnackbarPresenter(SnackbarPresenter);
+        contentDialogService.SetContentPresenter(RootContentDialog);
+    }
+
+    private void ImageControlModule_myEvent(int someValue)
+    {
+        throw new NotImplementedException();
     }
 
     #region INavigationWindow methods

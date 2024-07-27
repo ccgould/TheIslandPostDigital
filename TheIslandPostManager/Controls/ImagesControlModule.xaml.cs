@@ -53,6 +53,22 @@ public  class ImagesControlModule : Control
         new PropertyMetadata(null)
     );
 
+
+    public static readonly RoutedEvent TapEvent = EventManager.RegisterRoutedEvent(
+    "Tap", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(ImagesControlModule));
+
+    private void Button_Click(object sender, RoutedEventArgs e)
+    {
+        // Click event logic.
+    }
+
+    // Provide CLR accessors for adding and removing an event handler.
+    public event RoutedEventHandler Tap
+    {
+        add { AddHandler(TapEvent, value); }
+        remove { RemoveHandler(TapEvent, value); }
+    }
+
     public INavigationView? NavigationView
     {
         get => (INavigationView)GetValue(NavigationViewProperty);
@@ -72,8 +88,7 @@ public  class ImagesControlModule : Control
         Loaded += static (sender, _) => ((ImagesControlModule)sender).OnLoaded();
         Unloaded += static (sender, _) => ((ImagesControlModule)sender).OnUnloaded();
 
-        SetValue(
-            TemplateButtonCommandProperty,
+        SetValue(TemplateButtonCommandProperty,
             new CommunityToolkit.Mvvm.Input.AsyncRelayCommand<string>(OnClick)
         );
     }
@@ -148,14 +163,17 @@ public  class ImagesControlModule : Control
                 await viewModel.ImageService.DeleteAllImages();
                 break;
             case "createOrder":
-                viewModel.OrderService.CreateOrder();
+                await viewModel.CreateOrder();
                 break;
-                //case "completeOrder":
-                //    await viewModel.FinializeOrder();
-                //    break;
-                //case "cancelOrder":
-                //    await viewModel.CancelOrder();
-                //    break;
+            case "cancelOrder":
+                await viewModel.CancelAllOrders();
+                break;
+            case "openCustmerView":
+                viewModel.OpenCustomerView();
+                break;
+            case "pendOrder":
+                //await viewModel.PendOrder();
+                break;
         }
     }
 

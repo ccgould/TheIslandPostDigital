@@ -17,7 +17,7 @@ public class MessageService : IMessageService
         this.snackbarService = snackbarService;
     }
 
-    public async Task<MessageBoxResult> ShowMessage(string title, string message, string closeButtonText = "OK",
+    public async Task<MessageBoxResult> ShowMessage(string title, string message, string closeButtonText = "CLOSE",
         ControlAppearance closeButtonAppearance = ControlAppearance.Primary,
         bool isPrimaryVisible = true, string primaryButtonText = "YES",
         bool isSecondaryVisible = false, string secondaryButtonText = "NO")
