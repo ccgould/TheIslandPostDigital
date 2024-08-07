@@ -1,4 +1,5 @@
 ﻿using System.Windows.Input;
+using TheIslandPostManager.Services;
 using TheIslandPostManager.ViewModels;
 using Wpf.Ui.Controls;
 
@@ -61,11 +62,11 @@ public partial class DashboardPage : INavigableView<DashboardViewModel>
                 e.Handled = true;
                 break;
             case Key.Up:
-                ViewModel.SelectPhoto();
+                ViewModel.SelectImageClick(ViewModel.OrderService.CurrentOrder.CurrentImage);
                 e.Handled = true;
                 break;
             case Key.Down:
-                ViewModel.AttemptDislikePhoto();
+                ViewModel.SelectAsMaybeClick(ViewModel.OrderService.CurrentOrder.CurrentImage);
                 e.Handled = true;
                 break;
             default:

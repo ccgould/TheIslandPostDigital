@@ -6,11 +6,13 @@ namespace TheIslandPostManager.Models;
 
 public partial class PurchaseItem : ObservableObject
 {
-    public PurchaseItem(string description, string data, decimal cost)
+    public PurchaseItem(string description, string data, decimal cost, int imageCount,int printCount = -1)
     {
         Description = description;
         Data = data;
         Cost = cost;
+        ImageCount = imageCount;
+        PrintCount = printCount == -1 ? imageCount : printCount;
     }
 
     public string Description { get; set; }
@@ -18,6 +20,8 @@ public partial class PurchaseItem : ObservableObject
     public decimal Cost { get; set; }
     [ObservableProperty] private decimal totalCost;
     [ObservableProperty] private bool isFlyoutOpen;
+    [ObservableProperty] private int imageCount;
+    [ObservableProperty] private int printCount;
 
     [ObservableProperty] private int amount;
     [ObservableProperty] private Visibility amountVisible = Visibility.Collapsed;

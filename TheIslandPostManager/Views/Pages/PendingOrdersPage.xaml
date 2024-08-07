@@ -5,12 +5,84 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:TheIslandPostManager.Views.Pages"
       xmlns:controls="clr-namespace:TheIslandPostManager.Controls"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
       controls:ImagesControlModule.Show="False"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
+      x:Name="pendingOrdersPage"
       Title="PendingOrdersPage">
 
+    <Page.Resources>
+        <!--body content datagrid cell vertical centering-->
+        <Style x:Key="Body_Content_DataGrid_Centering"
+        TargetType="{x:Type DataGridCell}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridCell}">
+                        <Grid Background="{TemplateBinding Background}">
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
+
     <Grid>
-        
+        <ui:DataGrid CanUserAddRows="False" AutoGenerateColumns="False" ItemsSource="{Binding OrderService.PendingOrders}"  ColumnWidth="Auto" SelectionUnit="FullRow" Margin="10" IsReadOnly="True">
+            <ui:DataGrid.Columns>
+                <DataGridTemplateColumn Header="Thumbnail" >
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Image Width="120" Height="120" HorizontalAlignment="Center" Source="{Binding Thumbnail}">
+                                <!--<Image.Source>
+                                    <BitmapImage DecodePixelWidth="100" DecodePixelHeight="100" UriSource="{Binding Thumbnail}" />
+                                </Image.Source>-->
+                            </Image>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Added By" Binding="{Binding Name}">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                            <Setter Property="HorizontalAlignment" Value="Center" />
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Date" Binding="{Binding Date}">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                            <Setter Property="HorizontalAlignment" Value="Center" />
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Path" Binding="{Binding DownloadURL}" Width="*">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                            <Setter Property="HorizontalAlignment" Value="Center" />
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTemplateColumn Header="Delete">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ui:Button Content="Delete" Command="{Binding ElementName=pendingOrdersPage, Path=ViewModel.DeleteCommand}" CommandParameter="{Binding .}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Restore">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ui:Button Content="Restore" Command="{Binding ElementName=pendingOrdersPage, Path=ViewModel.OpenOrderFromPendingCommand}" CommandParameter="{Binding .}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </ui:DataGrid.Columns>
+
+
+        </ui:DataGrid>
     </Grid>
 </Page>

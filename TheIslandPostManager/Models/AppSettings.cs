@@ -97,7 +97,7 @@ public class AppSettings : ConfigurationSection
         set { this["password"] = value; }
     }
 
-    [ConfigurationProperty("email", DefaultValue = "")]
+    [ConfigurationProperty("host", DefaultValue = "")]
     public string Host
     {
         get { return (string)this["host"]; }
@@ -111,10 +111,10 @@ public class AppSettings : ConfigurationSection
         set { this["companyName"] = value; }
     }
 
-    [ConfigurationProperty("portNumber", DefaultValue = "")]
-    public string PortNumber
+    [ConfigurationProperty("portNumber", DefaultValue = 0)]
+    public int PortNumber
     {
-        get { return (string)this["portNumber"]; }
+        get { return (int)this["portNumber"]; }
         set { this["portNumber"] = value; }
     }
 

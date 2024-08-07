@@ -8,4 +8,7 @@ public interface IFileService
     void OpenLocation(string path);
     bool CreateDirectory(string directory);
     Task Copy(List<Tuple<string, string>> file);
+    Task MoveBulk(List<Tuple<string, string>> files);
+    Task Move(Tuple<string, string> files);
+    void DeleteDirectory(string downloadURL);
 }

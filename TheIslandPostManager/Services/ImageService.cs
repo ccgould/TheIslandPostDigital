@@ -3,7 +3,7 @@ using TheIslandPostManager.Models;
 using Wpf.Ui.Controls;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using TheIslandPostManager.Helpers;
-using Image = TheIslandPostManager.Models.Image;
+using ImageObj = TheIslandPostManager.Models.ImageObj;
 using CommunityToolkit.Mvvm.ComponentModel;
 using System.Drawing.Imaging;
 using System.Drawing;
@@ -44,14 +44,14 @@ public partial class ImageService : ObservableObject, IImageService
 
 
 
-            await Copier.CopyFiles(CreatePaths(dialog.FileNames), (prog, fileName) =>
+            await Copier.CopyFiles(CreatePaths(dialog.FileNames), (Action<int, string>)((prog, fileName) =>
             {
                 //IsBusy = true;
                 //CurrentAmount++;
                 //ProgressBarValue = prog;
-                
-                AddImage(new Image(fileName));
-            });
+
+                AddImage((ImageObj)new(fileName));
+            }));
 
             //TotalImages = 0;
             //CurrentAmount = 0;
@@ -61,7 +61,7 @@ public partial class ImageService : ObservableObject, IImageService
         }
     }
 
-    public async Task DeleteImage(Image image)
+    public async Task DeleteImage(ImageObj image)
     {
         var result = await messageService.ShowMessage("Delete", $"Are you sure you would like to delete {image.Name}");
 
@@ -71,7 +71,7 @@ public partial class ImageService : ObservableObject, IImageService
         }
     }
 
-    public void AddImage(Image image)
+    public void AddImage(ImageObj image)
     {
         image.Index = GetCurrentOrder().CurrentImages.Count + 1;
         GetCurrentOrder().CurrentImages.Add(image);
@@ -87,7 +87,7 @@ public partial class ImageService : ObservableObject, IImageService
         return orderService.CurrentOrder;
     }
 
-    public void ReplaceImage(string path, Image image)
+    public void ReplaceImage(string path, ImageObj image)
     {
         var imageObj = GetCurrentOrder().CurrentImages.FirstOrDefault(x => x.ImageUrl.Equals(path));
 
@@ -95,7 +95,7 @@ public partial class ImageService : ObservableObject, IImageService
 
     }
 
-    public void OpenImageLocation(Image image)
+    public void OpenImageLocation(ImageObj image)
     {
 
     }
@@ -119,7 +119,7 @@ public partial class ImageService : ObservableObject, IImageService
 
     public void SelectAllImages()
     {
-        foreach (Image image in GetCurrentOrder().CurrentImages)
+        foreach (ImageObj image in GetCurrentOrder().CurrentImages)
         {
             image.IsSelected = true;
             orderService.AddImageToOrder(image);
@@ -128,7 +128,7 @@ public partial class ImageService : ObservableObject, IImageService
 
     public void DeSelectAllImages()
     {
-        foreach (Image image in GetCurrentOrder().CurrentImages)
+        foreach (ImageObj image in GetCurrentOrder().CurrentImages)
         {
             image.IsSelected = false;
             orderService.RemoveImageFromOrder(image);
@@ -137,7 +137,7 @@ public partial class ImageService : ObservableObject, IImageService
 
     public void PrintAllImages()
     {
-        foreach (Image image in GetCurrentOrder().CurrentImages)
+        foreach (ImageObj image in GetCurrentOrder().CurrentImages)
         {
             image.IsPrintable = true;
             image.IsSelected = true;
@@ -149,7 +149,7 @@ public partial class ImageService : ObservableObject, IImageService
     {
         var uiMessageBox = new MessageBox
         {
-            Title = "Delete Image?",
+            Title = "Delete ImageObj?",
             Content = "Are you sure you would like to remove all images from this collection?",
             IsPrimaryButtonEnabled = true,
             PrimaryButtonText = "Yes",
@@ -203,7 +203,7 @@ public partial class ImageService : ObservableObject, IImageService
         // The Print amount is changing because its still referencing the same object you have to clone the object
         return;
 
-        foreach (Image image in GetCurrentOrder().CurrentImages)
+        foreach (ImageObj image in GetCurrentOrder().CurrentImages)
         {
             foreach(var imageObj in obj.ApprovedImages)
             {

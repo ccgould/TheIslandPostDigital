@@ -3,11 +3,12 @@ using System.Collections.ObjectModel;
 using System.Drawing.Imaging;
 using System.Drawing;
 using System.IO;
-using System.Xml.Linq;
 using TheIslandPostManager.Models;
-using Image = TheIslandPostManager.Models.Image;
+using ImageObj = TheIslandPostManager.Models.ImageObj;
 using TheIslandPostManager.Helpers;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
+using Microsoft.VisualBasic;
+using FluentEmail.Core;
+
 
 namespace TheIslandPostManager.Services;
 
@@ -17,27 +18,31 @@ public partial class OrderService : ObservableObject, IOrderService
     [ObservableProperty] private ObservableCollection<Order> currentOrders = new();
     [ObservableProperty] private ObservableCollection<Order> completedOrders = new();
     [ObservableProperty] private ObservableCollection<Order> purchaseHistory = new();
+    [ObservableProperty] private ObservableCollection<Order> pendingOrders = new();
     [ObservableProperty] private Order currentOrder;
-    private readonly IMessageService messageService;
-    private readonly IFileService fileService;
-    private AppSettings? settings => App.AppConfig.GetSection("AppSettings") as AppSettings;
-    private int currentOrderIndex;
     [ObservableProperty] private bool isBusy;
 
-
+    private AppSettings? settings => App.AppConfig.GetSection("AppSettings") as AppSettings;
+    private readonly IMessageService messageService;
+    private readonly IFileService fileService;
+    private readonly IMySQLService mySQLService;
+    public Action OnPendingOrderCountChanged;
     private string _appDataLocation;
+    private int currentOrderIndex;
     private string _tempFolder;
     private string _inputFolder;
 
-    public OrderService(IMessageService messageService,IFileService fileService)
+    public OrderService(IMessageService messageService,IFileService fileService,IMySQLService mySQLService)
     {
         currentOrders = new ObservableCollection<Order>();
         this.messageService = messageService;
         this.fileService = fileService;
+        this.mySQLService = mySQLService;
         var outPutFolder = settings.OutputDirectory;
         _appDataLocation = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data");
         _tempFolder = Path.Combine(_appDataLocation, "Temp");
         _inputFolder = Path.Combine(_appDataLocation, "Input");
+        pendingOrders = mySQLService.GetPendingOrders();
     }
 
     public async Task CreateOrder(bool copy = false)
@@ -53,10 +58,16 @@ public partial class OrderService : ObservableObject, IOrderService
             }
         }
 
-
         CurrentOrders.Add(order);
         CurrentOrder = order;
+        currentOrderIndex++;
+    }
 
+    public void CreateOrder(Order order)
+    {
+        order.SetCurrentIndex(currentOrderIndex);
+        CurrentOrders.Add(order);
+        CurrentOrder = order;
         currentOrderIndex++;
     }
 
@@ -86,18 +97,16 @@ public partial class OrderService : ObservableObject, IOrderService
 
     public void Cancel(Order order)
     {
-
         CurrentOrders.Remove(order);
 
         if(CurrentOrder == order)
         {
             CurrentOrder = null;
         }
-
     }
 
     public async Task CompleteOrderAsync()
-    {
+     {
         IsBusy = true;
                     
         await Task.Run(() =>
@@ -110,7 +119,7 @@ public partial class OrderService : ObservableObject, IOrderService
                 outputLoc = CurrentOrder.GetSubOutputLocation();
             }
 
-            foreach (Image image in CurrentOrder.CurrentImages)
+            foreach (ImageObj image in CurrentOrder.CurrentImages)
             {
                 if (image.IsSelected)
                 {
@@ -137,9 +146,23 @@ public partial class OrderService : ObservableObject, IOrderService
                     });
                 }
             }
+
+            var emails = CurrentOrder.Email.Split(',');
+
+            if(emails.Length > 1)
+            {
+                for (int i = 1;i < emails.Length;i++)
+                {
+                    CurrentOrder.CC.Add(new FluentEmail.Core.Models.Address(emails[i].Trim()));
+                }
+
+                CurrentOrder.Email = emails[0].Trim();
+            }
         });
 
         fileService.OpenLocation(CurrentOrder.GetOutputLocation());
+
+        mySQLService.AddCompletedOrder(CurrentOrder);
 
         //Delete Order
         DeleteOrder(CurrentOrder);
@@ -236,23 +259,159 @@ public partial class OrderService : ObservableObject, IOrderService
         return string.Join("_", filename.Split(Path.GetInvalidFileNameChars()));
     }
 
-    public void AddImageToOrder(Image image)
+    public void AddImageToOrder(ImageObj image)
     {
-        CurrentOrder.ApproveImage();
+        CurrentOrder.ApproveImage(image);
     }
 
-    public void RemoveImageFromOrder(Image image)
+    public void RemoveImageFromOrder(ImageObj image)
     {
         CurrentOrder.DisApproveImage(image);
+        RemoveImageFromOrderPrints(image);
     }
 
-    public void AddImageToOrderPrints(Image image)
+    public void AddImageToOrderPrints(ImageObj image)
     {
         CurrentOrder.ApprovePrint(image);
     }
 
-    public void RemoveImageFromOrderPrints(Image image)
+    public void RemoveImageFromOrderPrints(ImageObj image)
     {
         CurrentOrder.DisApprovePrint(image);
     }
+
+    public async Task PendOrder(string name)
+    {
+        var dirName = Path.Combine(settings.PendingDirectory, Guid.NewGuid().ToString());
+
+        CurrentOrder.Name = name;
+
+        if(fileService.CreateDirectory(dirName))
+        {
+            foreach (ImageObj item in CurrentOrder.CurrentImages)
+            {
+                var imgPath = Directory.GetParent(item.ImageUrl);
+
+                var dirInfo = new DirectoryInfo(item.ImageUrl);
+                var dirInfo2 = new DirectoryInfo(settings.PendingDirectory);
+
+                if (IsStrictSubDirectoryOf(dirInfo, dirInfo2))
+                {
+                    continue;
+                }
+                var newFileName = Path.Combine(dirName, item.Name);
+                await fileService.Move(new(item.ImageUrl, newFileName));
+                item.ImageUrl = newFileName;
+            }
+
+
+        }
+
+        CurrentOrder.Thumbnail = CurrentOrder.CurrentImages.FirstOrDefault().LowImage;
+        CurrentOrder.DownloadURL = dirName;
+        CurrentOrder.Date = DateTime.Now;
+        PendingOrders.Add(CurrentOrder);
+        mySQLService.AddPendingOrder(CurrentOrder);
+        //CurrentOrder.Thumbnail = LoadImageFile(ThumnailLocationFormat(CurrentOrder));
+        //SavePendingOrder(order);
+        Cancel(CurrentOrder);
+    }
+
+    internal bool IsSubDirectoryOfOrSame(DirectoryInfo directoryInfo, DirectoryInfo potentialParent)
+    {
+        if (DirectoryInfoComparer.Default.Equals(directoryInfo, potentialParent))
+        {
+            return true;
+        }
+
+        return IsStrictSubDirectoryOf(directoryInfo, potentialParent);
+    }
+
+    internal bool IsStrictSubDirectoryOf(DirectoryInfo directoryInfo, DirectoryInfo potentialParent)
+    {
+        while (directoryInfo.Parent != null)
+        {
+            if (DirectoryInfoComparer.Default.Equals(directoryInfo.Parent, potentialParent))
+            {
+                return true;
+            }
+
+            directoryInfo = directoryInfo.Parent;
+        }
+
+        return false;
+    }
+
+    public async Task OpenOrderFromPending(Order order)
+    {
+        CreateOrder(order);
+        
+        foreach (var item in order.CurrentImages)
+        {
+            var newFile = Path.Combine(settings.InputDirectory, Path.GetFileName(item.ImageUrl)); 
+            await fileService.Move(new(item.ImageUrl, newFile));
+            item.ImageUrl = newFile;
+        }
+        PendingOrders.Remove(order);
+        fileService.DeleteDirectory(order.DownloadURL);
+        mySQLService.RemovePendingOrder(order);
+    }
+
+    public async Task DeletePendingOrder(Order order)
+    {
+        var result = await messageService.ShowMessage("Delete Pending Order", $"Are you sure you would like to delete {order.Name} pending order", "NO");
+        
+        if(result == Wpf.Ui.Controls.MessageBoxResult.Primary)
+        {
+            mySQLService.RemovePendingOrder(order);
+            fileService.DeleteDirectory(order.DownloadURL);
+            PendingOrders.Remove(order);
+        }
+    }
+
+    public async Task RestorePendingOrder(Order order)
+    {
+
+    }
+
+    public void SetAsMaybe(ImageObj image)
+    {
+        image.IsPending = !image.IsPending;
+        RemoveImageFromOrder(image);
+    }
 }
+public class DirectoryInfoComparer : IEqualityComparer<DirectoryInfo>
+{
+    private static readonly char[] TrimEnd = { '\\' };
+    public static readonly DirectoryInfoComparer Default = new DirectoryInfoComparer();
+    private static readonly StringComparer OrdinalIgnoreCaseComparer = StringComparer.OrdinalIgnoreCase;
+
+    private DirectoryInfoComparer()
+    {
+    }
+
+    public bool Equals(DirectoryInfo x, DirectoryInfo y)
+    {
+        if (ReferenceEquals(x, y))
+        {
+            return true;
+        }
+
+        if (x == null || y == null)
+        {
+            return false;
+        }
+
+        return OrdinalIgnoreCaseComparer.Equals(x.FullName.TrimEnd(TrimEnd), y.FullName.TrimEnd(TrimEnd));
+    }
+
+    public int GetHashCode(DirectoryInfo obj)
+    {
+        if (obj == null)
+        {
+            throw new ArgumentNullException(nameof(obj));
+        }
+        return OrdinalIgnoreCaseComparer.GetHashCode(obj.FullName.TrimEnd(TrimEnd));
+    }
+}
+

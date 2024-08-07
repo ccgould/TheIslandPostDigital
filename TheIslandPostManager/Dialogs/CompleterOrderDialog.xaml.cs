@@ -12,17 +12,17 @@ public partial class CompleterOrderDialog : ContentDialog
     private readonly IMessageService messageService;
 
     public CompleteOrderDialogViewModel ViewModel { get; set; }
-    public CompleterOrderDialog(ContentPresenter contentPresenter,IOrderService orderService, IMessageService messageService) : base(contentPresenter)
+    public CompleterOrderDialog(ContentPresenter contentPresenter,IOrderService orderService, IMessageService messageService,IMySQLService mySQLService) : base(contentPresenter)
     {
         InitializeComponent();
 
-        ViewModel = new CompleteOrderDialogViewModel(orderService);
+        ViewModel = new CompleteOrderDialogViewModel(orderService,mySQLService);
         
         DataContext = ViewModel;
         this.messageService = messageService;
     }
 
-    protected override void OnButtonClick(ContentDialogButton button)
+    protected override async void OnButtonClick(ContentDialogButton button)
     {
         if(button == ContentDialogButton.Primary)
         {
@@ -46,10 +46,20 @@ public partial class CompleterOrderDialog : ContentDialog
                 valid = false;
             }
 
+            if(!ViewModel.CheckConditons())
+            {
+                var result = await messageService.ShowMessage("Incorrect Amounts", "There are incorrect Prints or Images count in this order. Do you want to continue?", "NO");
+
+                if(result == MessageBoxResult.None)
+                {
+                    return;
+                }
+            }
+
             if (valid)
             {
                 base.OnButtonClick(button);
-                ViewModel.CompleteOrder();
+               await ViewModel.CompleteOrder();
             }
         }
         else

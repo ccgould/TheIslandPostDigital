@@ -172,7 +172,7 @@ public  class ImagesControlModule : Control
                 viewModel.OpenCustomerView();
                 break;
             case "pendOrder":
-                //await viewModel.PendOrder();
+                await viewModel.PendOrder();
                 break;
         }
     }

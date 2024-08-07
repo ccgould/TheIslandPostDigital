@@ -48,11 +48,7 @@
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Grid.Column="0" Text="Clerk:" VerticalAlignment="Center" Margin="10,0"/>
-                    <ComboBox Grid.Column="1"  x:Name="ClerkCmbox">
-                        <ComboBoxItem>Creswell G.</ComboBoxItem>
-                        <ComboBoxItem>Ashton R.</ComboBoxItem>
-                        <ComboBoxItem>Adewele G.</ComboBoxItem>
-                        <ComboBoxItem>Jordan H.</ComboBoxItem>
+                    <ComboBox Grid.Column="1"  x:Name="ClerkCmbox" ItemsSource="{Binding Employees}" DisplayMemberPath="FirstName" SelectedItem="{Binding Selected}">
                     </ComboBox>
                     <TextBlock Grid.Column="2" Text="Passenger Name:" VerticalAlignment="Center" Margin="10,0"/>
                     <ui:TextBox Grid.Column="3"  FontSize="14" x:Name="PassengerNameTxtb" Text="{Binding OrderService.CurrentOrder.Name, UpdateSourceTrigger=PropertyChanged}"/>
@@ -120,7 +116,23 @@
                             </Grid.RowDefinitions>
 
                             <Border Background="Gray">
-                                <TextBlock Text="Purchases" FontWeight="DemiBold" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Purchases" FontWeight="DemiBold" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                    <StackPanel Orientation="Horizontal" Grid.Column="1">
+                                        <StackPanel Orientation="Horizontal">
+                                            <ui:SymbolIcon ToolTip="Images Count" Symbol="Image16" FontSize="20" Filled="True"/>
+                                            <TextBlock ToolTip="Images Count" Text="{Binding OrderService.CurrentOrder.ApprovedImages.Count}" FontWeight="DemiBold" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="10,0">
+                                            <ui:SymbolIcon ToolTip="Prints Count" Symbol="Print16" FontSize="20" Filled="True"/>
+                                            <TextBlock ToolTip="Prints Count" Text="{Binding OrderService.CurrentOrder.ApprovedPrints.Count}" FontWeight="DemiBold" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Grid>
                             </Border>
 
                             <ui:ListView Grid.Row="1" ItemsSource="{Binding OrderService.CurrentOrder.Cart}">
@@ -209,6 +221,22 @@
                 Foreground="Red"
                 Text="You must provide a passenger name to continue"
                 Visibility="Collapsed" />
+
+            <TextBlock
+                Visibility="{Binding ShowImageCountOverMessage, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                FontSize="16"
+                Foreground="Red"
+                Text="Image count is over the allowed amount" />
+
+            <TextBlock
+                 Visibility="{Binding ShowPrintCountOverMessage, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 FontSize="16"
+                 Foreground="Red"
+                 Text="Print count is over the allowed amount" />
 
             <!--<CheckBox
                 x:Name="CheckBox"

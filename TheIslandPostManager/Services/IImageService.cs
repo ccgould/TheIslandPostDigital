@@ -8,9 +8,9 @@ public interface IImageService
     //Image CurrentImage { get; set; }
     //ObservableCollection<Image> CurrentImages { get; set; }
 
-    void AddImage(Image image);
+    void AddImage(ImageObj image);
     Task DeleteAllImages();
-    Task DeleteImage(Image image);
+    Task DeleteImage(ImageObj image);
     void DeSelectAllImages();
     Task OpenImageDialogBrowser();
     void PrintAllImages();

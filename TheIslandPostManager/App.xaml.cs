@@ -4,6 +4,8 @@ using Microsoft.Extensions.Hosting;
 using System.Configuration;
 using System.Data;
 using System.IO;
+using System.Net.Mail;
+using System.Net;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Threading;
@@ -19,6 +21,10 @@ namespace TheIslandPostManager;
 /// </summary>
 public partial class App
 {
+
+    public static Configuration AppConfig { get; set; } = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+
+
     // The.NET Generic Host provides dependency injection, configuration, logging, and other services.
     // https://docs.microsoft.com/dotnet/core/extensions/generic-host
     // https://docs.microsoft.com/dotnet/core/extensions/dependency-injection
@@ -57,6 +63,8 @@ public partial class App
                 services.AddSingleton<ViewModels.MainWindowViewModel>();
 
                 services.AddSingleton<IContentDialogService, ContentDialogService>();
+                services.AddSingleton<IEmailService, EmailService>();
+                services.AddSingleton<IMySQLService, MySQLService>();
 
                 // Views and ViewModels
                 services.AddSingleton<Views.Pages.DashboardPage>();
@@ -73,6 +81,24 @@ public partial class App
 
                 //services.AddSingleton<CustomerWindow>();
                 //services.AddSingleton<ViewModels.CustomerWindowViewmodel>();
+
+
+                var settings = AppConfig.GetSection("AppSettings") as AppSettings;
+                
+                var smtp = new SmtpClient
+                {
+                    Host = settings.Host,
+                    Port = settings.PortNumber,
+                    EnableSsl = settings.EnableSSL,
+                    UseDefaultCredentials = false,
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                    Credentials = new NetworkCredential(settings.Email, settings.Password)
+                };
+
+
+                services.AddFluentEmail(settings.Email, settings.CompanyName)
+                        .AddRazorRenderer()
+                        .AddSmtpSender(smtp);
 
                 // Configuration
                 services.Configure<AppConfig>(context.Configuration.GetSection(nameof(AppConfig)));
@@ -93,7 +119,6 @@ public partial class App
         return _host.Services.GetService(typeof(T)) as T;
     }
 
-    public static Configuration AppConfig { get; set; } = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 
 
     /// <summary>

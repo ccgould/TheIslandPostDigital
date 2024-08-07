@@ -1,10 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using Mysqlx.Crud;
+using FluentEmail.Core.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Windows.Data;
+using System.Windows.Media.Imaging;
 
 namespace TheIslandPostManager.Models;
 
@@ -19,14 +20,11 @@ public partial class Order : ObservableObject
 
     [ObservableProperty] private string email;
 
-    [Display(Name = "Date/Time", AutoGenerateField = false)]
-    public DateTime DateTime { get; set; }
-    //public List<Address> CC { get; set; }
+    public List<Address> CC { get; set; }
 
-    [ObservableProperty] private ObservableCollection<Image> currentImages = new();
+    [ObservableProperty] private ObservableCollection<ImageObj> currentImages = new();
     [ObservableProperty] private ICollectionView orderCollectionView;
-
-    [ObservableProperty] private Image currentImage;
+    [ObservableProperty] private ImageObj currentImage;
     [ObservableProperty] private List<IImage> approvedImages = new();
     [ObservableProperty] private List<IImage> approvedPrints = new();
     [ObservableProperty] private ObservableCollection<PurchaseItem> cart = new();
@@ -35,14 +33,14 @@ public partial class Order : ObservableObject
     [ObservableProperty] private int approvedImagesCount;
     [ObservableProperty] private int approvedPrintsCount;
     [ObservableProperty] private DateTime date;
-
     [ObservableProperty] private bool isFinalized;
+    [ObservableProperty] private bool isCompleteingOrder;
+    [ObservableProperty] private int maybeCount;
+    [ObservableProperty] private BitmapImage thumbnail;
 
 
     private string _orderFilter = "All";
-    [ObservableProperty] private bool isCompleteingOrder;
-
-    [ObservableProperty] private int maybeCount;
+    internal object EmployeeID;
 
     public string OrderFilter
     {
@@ -61,16 +59,17 @@ public partial class Order : ObservableObject
     public Order(int index)
     {
         Name = $"Order {index:D3}";
+        CC = new();
         OrderCollectionView = CollectionViewSource.GetDefaultView(currentImages);
         OrderCollectionView.Filter = FilterImages;
-        OrderCollectionView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(Image.IsSelected)));
-        OrderCollectionView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(Image.IsPrintable)));
-        OrderCollectionView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(Image.IsPending)));
-        OrderCollectionView.SortDescriptions.Add(new SortDescription(nameof(Image.Name), ListSortDirection.Ascending));
+        OrderCollectionView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(ImageObj.IsSelected)));
+        OrderCollectionView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(ImageObj.IsPrintable)));
+        OrderCollectionView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(ImageObj.IsPending)));
+        OrderCollectionView.SortDescriptions.Add(new SortDescription(nameof(ImageObj.Name), ListSortDirection.Ascending));
 
         OrderCollectionView.CurrentChanged += delegate
         {
-            CurrentImage = (Image)OrderCollectionView.CurrentItem;
+            CurrentImage = (ImageObj)OrderCollectionView.CurrentItem;
         };
     }
 
@@ -78,7 +77,7 @@ public partial class Order : ObservableObject
     {
         //TODO Add Filter
 
-        var image = (Image)obj;
+        var image = (ImageObj)obj;
 
         switch (OrderFilter)
         {
@@ -104,7 +103,7 @@ public partial class Order : ObservableObject
     
     internal void Finalize()
     {
-        DateTime = DateTime.Now;
+        Date = DateTime.Now;
     }
 
     internal string GetSubOutputLocation()
@@ -132,30 +131,41 @@ public partial class Order : ObservableObject
         }
     }
 
-    internal void ApproveImage()
+    internal void ApproveImage(ImageObj image)
     {
-        if(CurrentImage is null)
+        if(image is null)
         {
             return;
         }
-        if(!ApprovedImages.Contains(CurrentImage))
+
+        if(!ApprovedImages.Contains(image))
         {
-            CurrentImage.IsSelected = !CurrentImage.IsSelected;
-            ApprovedImages.Add(CurrentImage);
+            image.IsSelected = true;
+            ApprovedImages.Add(image);
             UpdateSelectionCounts();
+        }
+        else
+        {
+            DisApproveImage(image);
         }
     }
 
-    internal void DisApproveImage(Image image)
+    internal void DisApproveImage(ImageObj image)
     {
-        if(ApprovedImages.Contains(image))
+        if (image is null)
         {
+            return;
+        }
+
+        if (ApprovedImages.Contains(image))
+        {
+            image.IsSelected = false;
             ApprovedImages.Remove(image);
             UpdateSelectionCounts();
         }
     }
 
-    internal void ApprovePrint(Image image)
+    internal void ApprovePrint(ImageObj image)
     {
         if(!ApprovedPrints.Contains(image))
         {
@@ -164,7 +174,7 @@ public partial class Order : ObservableObject
         }
     }
 
-    internal void DisApprovePrint(Image image)
+    internal void DisApprovePrint(ImageObj image)
     {
         if(ApprovedPrints.Contains(image))
         {
@@ -179,7 +189,6 @@ public partial class Order : ObservableObject
         DisApproveImage(CurrentImage);
         UpdateSelectionCounts();
     }
-
 
     private void UpdateSelectionCounts()
     {
@@ -215,5 +224,10 @@ public partial class Order : ObservableObject
         CartTotal = Math.Round(total * (1 + vatPercent),2);
 
         VatTotal = Math.Round(CartTotal - total,2);
+    }
+
+    internal void SetCurrentIndex(int currentOrderIndex)
+    {
+        Name = $"Order {currentOrderIndex:D3}";
     }
 }

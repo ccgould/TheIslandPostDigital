@@ -64,6 +64,7 @@ xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                                 ToolTip="Delete All" >
                                 <ui:SymbolIcon Symbol="Delete12" FontSize="18"/>
                             </ui:Button>
+
                             <Separator
                             Grid.Column="2"
                             Height="16"
@@ -111,7 +112,6 @@ xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
             </Setter.Value>
         </Setter>
     </Style>
-
 </ResourceDictionary>
 
 

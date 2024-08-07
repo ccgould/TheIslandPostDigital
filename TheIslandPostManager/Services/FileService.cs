@@ -114,7 +114,7 @@ public class FileService : IFileService
         }
         catch (Exception ex)
         {
-            ShowErrorMessage(ex, $"Failed to load Image = {path}", "0190550a-78cc-71f9-8434-61e0d91adc17");
+            ShowErrorMessage(ex, $"Failed to load ImageObj = {path}", "0190550a-78cc-71f9-8434-61e0d91adc17");
         }
 
         return null;
@@ -122,14 +122,20 @@ public class FileService : IFileService
 
     public bool CreateDirectory(string directory)
     {
-        if(Directory.Exists(directory))
+        try
         {
-            return true;
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+        }
+        catch (Exception ex)
+        {
+            messageService.ShowErrorMessage("Error Occured!", ex.Message, ex.StackTrace, "");
+            return false;
         }
 
-        Directory.CreateDirectory(directory);
-
-        return false;
+        return true;
     }
 
     public async Task Copy(List<Tuple<string, string>> file)
@@ -140,5 +146,71 @@ public class FileService : IFileService
             var result = Path.Combine(settings.PrinterDirectory, fileNameWEx);
             File.Move(fileName, result, true);
         });
+    }
+
+    public async Task MoveBulk(List<Tuple<string, string>> files)
+    {
+        try
+        {
+            foreach (var file in files)
+            {
+                using (FileStream sourceStream = File.Open(file.Item1, FileMode.Open))
+                {
+                    using (FileStream destinationStream = File.Create(file.Item2))
+                    {
+                        await sourceStream.CopyToAsync(destinationStream);
+                        sourceStream.Close();
+                        File.Delete(file.Item1);
+                    }
+                }
+            }
+        }
+        catch (IOException ioex)
+        {
+           await messageService.ShowErrorMessage("Error", $"An IOException occured during move, {ioex.Message}", ioex.StackTrace,"");
+        }
+        catch (Exception ex)
+        {
+            await messageService.ShowErrorMessage("Error", $"An Exception occured during move, {ex.Message}",ex.StackTrace,"" );
+        }
+    }
+
+    public async Task Move(Tuple<string, string> files)
+    {
+        try
+        {
+            using (FileStream sourceStream = File.Open(files.Item1, FileMode.Open))
+            {
+                using (FileStream destinationStream = File.Create(files.Item2))
+                {
+                    await sourceStream.CopyToAsync(destinationStream);
+                    sourceStream.Close();
+                    File.Delete(files.Item1);
+                }
+            }
+        }
+        catch (IOException ioex)
+        {
+            await messageService.ShowErrorMessage("Error", $"An IOException occured during move, {ioex.Message}", ioex.StackTrace, "");
+        }
+        catch (Exception ex)
+        {
+            await messageService.ShowErrorMessage("Error", $"An Exception occured during move, {ex.Message}", ex.StackTrace, "");
+        }
+    }
+
+    public void DeleteDirectory(string dirPath)
+    {
+        try
+        {
+            if (Directory.Exists(dirPath))
+            {
+                Directory.Delete(dirPath,true);
+            }
+        }
+        catch (Exception ex)
+        {
+            messageService.ShowErrorMessage("Error Occured!", ex.Message, ex.StackTrace, "");
+        }
     }
 }

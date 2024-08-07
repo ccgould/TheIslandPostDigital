@@ -10,7 +10,7 @@ using Path = System.IO.Path;
 
 namespace TheIslandPostManager.Models;
 
-public partial class Image : ObservableObject, IImage
+public partial class ImageObj : ObservableObject, IImage
 {
     [ObservableProperty] private string imageUrl;
     [ObservableProperty] private string name;
@@ -27,7 +27,7 @@ public partial class Image : ObservableObject, IImage
 
 
 
-    public Image()
+    public ImageObj()
     {
         if(_fileService is null)
         {
@@ -35,7 +35,7 @@ public partial class Image : ObservableObject, IImage
         }
     }
 
-    public Image(string path)
+    public ImageObj(string path)
     {
         this.name = Path.GetFileName(path);
         this.imageUrl = path;
@@ -48,9 +48,9 @@ public partial class Image : ObservableObject, IImage
          LoadImage(path);
     }
 
-    public Image Copy(bool reset = false)
+    public ImageObj Copy(bool reset = false)
     {
-        var result = new Image();
+        var result = new ImageObj();
 
         if(reset)
         {

@@ -202,9 +202,9 @@
                                         </Grid.RowDefinitions>
 
                                         <StackPanel Grid.RowSpan="2" Grid.ColumnSpan="2" Orientation="Vertical" VerticalAlignment="Center">
-                                            <Grid>
-                                                <ui:SymbolIcon Symbol="Emoji20" Foreground="#00e200" Visibility="{Binding IsSelected, Converter={StaticResource BoolToVis}, FallbackValue=Hidden}" FontSize="60" Filled="True"/>
-                                                <ui:SymbolIcon Symbol="EmojiSadSlight20" Foreground="#ffa500" Visibility="{Binding IsPending, Converter={StaticResource BoolToVis}, FallbackValue=Hidden}" FontSize="60" Filled="True"/>
+                                            <Grid Height="100" Width="100">
+                                                <ui:SymbolIcon Symbol="Emoji48" Foreground="#00e200" Visibility="{Binding IsSelected, Converter={StaticResource BoolToVis}, FallbackValue=Hidden}" Filled="True"/>
+                                                <ui:SymbolIcon Symbol="EmojiSadSlight24" Foreground="#ffa500" Visibility="{Binding IsPending, Converter={StaticResource BoolToVis}, FallbackValue=Hidden}" Filled="True"/>
                                             </Grid>
 
                                         </StackPanel>

@@ -1,10 +1,14 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Mysqlx.Crud;
+using System.Windows.Controls;
 using TheIslandPostManager.Dialogs;
 using TheIslandPostManager.Models;
 using TheIslandPostManager.Services;
 using TheIslandPostManager.Windows;
 using Wpf.Ui;
+using Wpf.Ui.Controls;
+using Wpf.Ui.Extensions;
 using Order = TheIslandPostManager.Models.Order;
 
 namespace TheIslandPostManager.ViewModels;
@@ -15,14 +19,16 @@ public partial class DashboardViewModel : ObservableObject
     [ObservableProperty] private IImageService imageService;
     private readonly IMessageService messageService;
     private readonly IContentDialogService contentDialogService;
+    private readonly IMySQLService mySQLService;
 
-    public DashboardViewModel(IOrderService orderService,IFileService fileService,IImageService imageService,IMessageService messageService, IContentDialogService contentDialogService)
+    public DashboardViewModel(IOrderService orderService,IFileService fileService,IImageService imageService,IMessageService messageService, IContentDialogService contentDialogService,IMySQLService mySQLService)
     {
         OrderService = orderService;
         FileService = fileService;
         ImageService = imageService;
         this.messageService = messageService;
         this.contentDialogService = contentDialogService;
+        this.mySQLService = mySQLService;
         OrderService.CreateOrder();
     }
 
@@ -68,7 +74,7 @@ public partial class DashboardViewModel : ObservableObject
 
 
     [RelayCommand]
-    private void ImageClick(Image image)
+    private void ImageClick(ImageObj image)
     {
         //OrderService.CurrentOrder.currentImage
         //Service.SelectedImage = image;
@@ -78,27 +84,27 @@ public partial class DashboardViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void SelectImageClick(Image image)
+    public void SelectImageClick(ImageObj image)
     {
-        image.IsSelected = !image.IsSelected;
         OrderService.AddImageToOrder(image);
     }
 
     [RelayCommand]
-    private void DeleteImageClick(Image image)
+    private void DeleteImageClick(ImageObj image)
     {
         ImageService.DeleteImage(image);
         OrderService.RemoveImageFromOrder(image);
     }
 
     [RelayCommand]
-    private void SelectAsMaybeClick(Image image)
+    public void SelectAsMaybeClick(ImageObj image)
     {
-        image.IsPending = !image.IsPending;
+        //image.IsPending = !image.IsPending;
+        OrderService.SetAsMaybe(image);
     }
 
     [RelayCommand]
-    private void PrintImageClick(Image image)
+    private void PrintImageClick(ImageObj image)
     {
         image.IsPrintable = !image.IsPrintable;
 
@@ -114,13 +120,13 @@ public partial class DashboardViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void IncreasePrintCountClick(Image image)
+    private void IncreasePrintCountClick(ImageObj image)
     {
         image.PrintAmount += 1;
     }
 
     [RelayCommand]
-    private void DecreasePrintCountClick(Image image)
+    private void DecreasePrintCountClick(ImageObj image)
     {
         if (image.PrintAmount == 1) return;
         image.PrintAmount -= 1;
@@ -138,7 +144,7 @@ public partial class DashboardViewModel : ObservableObject
         OrderService.CurrentOrder = order;
         OrderService.CurrentOrder.IsCompleteingOrder = true;
 
-        var termsOfUseContentDialog = new CompleterOrderDialog(contentDialogService.GetContentPresenter(),OrderService,messageService);
+        var termsOfUseContentDialog = new CompleterOrderDialog(contentDialogService.GetContentPresenter(),OrderService,messageService,mySQLService);
 
         _ = await termsOfUseContentDialog.ShowAsync();
     }
@@ -153,13 +159,16 @@ public partial class DashboardViewModel : ObservableObject
         OrderService.CurrentOrder.NextPhoto();
     }
 
-    internal void SelectPhoto()
+    internal async Task PendOrder()
     {
-        OrderService.CurrentOrder.ApproveImage();
-    }
+        var termsOfUseContentDialog = new CompletePendingDialog(contentDialogService.GetContentPresenter());
 
-    internal void AttemptDislikePhoto()
-    {
-        OrderService.CurrentOrder.MaybeImage();
+        var result = await termsOfUseContentDialog.ShowAsync();
+
+        if(result == ContentDialogResult.Primary)
+        {
+            var content = ((ComboBoxItem)termsOfUseContentDialog.ViewModel.SelectedItem).Content;
+            await OrderService.PendOrder((string)content);
+        }
     }
 }

@@ -15,6 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using TheIslandPostManager.Models;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 
 namespace TheIslandPostManager.Views.Pages;
 /// <summary>
@@ -30,8 +31,13 @@ public partial class SettingsPage : Page
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)
     {
+        var f = App.AppConfig.GetSection("AppSettings") as AppSettings;
+        f.Password = passwordBx.Password;
+
+
         App.AppConfig.Save(ConfigurationSaveMode.Modified);
         ConfigurationManager.RefreshSection("AppSettings");
+
     }
 
     //private void inputBrowseBtn_Click(object sender, RoutedEventArgs e)
@@ -123,6 +129,23 @@ public partial class SettingsPage : Page
 
             var f = App.AppConfig.GetSection("AppSettings") as AppSettings;
             f.WatermarkDirectory = dialog.FileName;
+            App.AppConfig.Save();
+        }
+    }
+
+    private void pendingBrowseBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new CommonOpenFileDialog();
+        dialog.IsFolderPicker = true;
+
+        CommonFileDialogResult result = dialog.ShowDialog();
+
+        if (result == CommonFileDialogResult.Ok)
+        {
+            pendingDirTxtB.Text = dialog.FileName;
+
+            var f = App.AppConfig.GetSection("AppSettings") as AppSettings;
+            f.PendingDirectory = dialog.FileName;
             App.AppConfig.Save();
         }
     }

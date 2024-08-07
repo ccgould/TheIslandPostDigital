@@ -16,7 +16,7 @@ public partial class CustomerWindowViewmodel : ObservableObject
         {
             if(orderService.CurrentOrder.OrderCollectionView.CurrentItem is not null)
             {
-                CurrentPosition = ((Image)orderService.CurrentOrder.OrderCollectionView.CurrentItem).Index;
+                CurrentPosition = ((ImageObj)orderService.CurrentOrder.OrderCollectionView.CurrentItem).Index;
             }
         };
     }
@@ -31,12 +31,6 @@ public partial class CustomerWindowViewmodel : ObservableObject
     private void NextPhoto()
     {
         OrderService.CurrentOrder.NextPhoto();
-    }
-
-    [RelayCommand]
-    private void SelectPhoto()
-    {
-        OrderService.CurrentOrder.ApproveImage();
     }
 
     [RelayCommand]
