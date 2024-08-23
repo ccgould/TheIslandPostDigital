@@ -29,7 +29,16 @@
     </Page.Resources>
 
     <Grid>
-        <ui:DataGrid CanUserAddRows="False" AutoGenerateColumns="False" ItemsSource="{Binding OrderService.PendingOrders}"  ColumnWidth="Auto" SelectionUnit="FullRow" Margin="10" IsReadOnly="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <ui:Button Content="Refresh" Margin="10" Command="{Binding RetrievePendingOrdersCommand}"/>
+
+        <ui:ProgressRing Grid.Row="1" IsIndeterminate="True" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
+
+        <ui:DataGrid CanUserAddRows="False" AutoGenerateColumns="False" ItemsSource="{Binding OrderService.PendingOrders}"  ColumnWidth="Auto" SelectionUnit="FullRow" Margin="10" IsReadOnly="True" Grid.Row="1">
             <ui:DataGrid.Columns>
                 <DataGridTemplateColumn Header="Thumbnail" >
                     <DataGridTemplateColumn.CellTemplate>
@@ -84,5 +93,6 @@
 
 
         </ui:DataGrid>
+
     </Grid>
 </Page>

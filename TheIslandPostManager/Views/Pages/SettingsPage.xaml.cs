@@ -1,21 +1,9 @@
 ﻿using Microsoft.WindowsAPICodePack.Dialogs;
-using System;
-using System.Collections.Generic;
 using System.Configuration;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using TheIslandPostManager.Models;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
+using TheIslandPostManager.Services;
 
 namespace TheIslandPostManager.Views.Pages;
 /// <summary>
@@ -23,44 +11,28 @@ namespace TheIslandPostManager.Views.Pages;
 /// </summary>
 public partial class SettingsPage : Page
 {
-    public SettingsPage()
+    private readonly IMySQLService mySQLService;
+
+
+    public SettingsPage(IMySQLService mySQLService)
     {
         InitializeComponent();
         DataContext = App.AppConfig.GetSection("AppSettings");
+        this.mySQLService = mySQLService;
     }
 
     private void SaveButton_Click(object sender, RoutedEventArgs e)
     {
         var f = App.AppConfig.GetSection("AppSettings") as AppSettings;
         f.Password = passwordBx.Password;
-
+        f.MysqlPassword = mysqlPasswordBx.Password;
 
         App.AppConfig.Save(ConfigurationSaveMode.Modified);
+
+        mySQLService.SetConnectionString();
+
         ConfigurationManager.RefreshSection("AppSettings");
-
     }
-
-    //private void inputBrowseBtn_Click(object sender, RoutedEventArgs e)
-    //{
-    //    var dialog = new CommonOpenFileDialog();
-    //    dialog.IsFolderPicker = true;
-    //    CommonFileDialogResult result = dialog.ShowDialog();
-
-    //    if (result == CommonFileDialogResult.Ok)
-    //    {
-    //        inputDirTxtB.Text = dialog.FileName;
-
-    //        var f = App.AppConfig.GetSection("AppSettings") as AppSettings;
-    //        f.InputDirectory = dialog.FileName;
-    //        App.AppConfig.Save();
-
-
-
-    //       // AddOrUpdateAppSettings("inputDirectory", dialog.FileName);
-    //    }
-
-    //}
-
 
     public static void AddOrUpdateAppSettings(string key, string value)
     {
@@ -146,6 +118,28 @@ public partial class SettingsPage : Page
 
             var f = App.AppConfig.GetSection("AppSettings") as AppSettings;
             f.PendingDirectory = dialog.FileName;
+            App.AppConfig.Save();
+        }
+    }
+
+    private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+
+    }
+
+    private void backupBrowseBtn_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new CommonOpenFileDialog();
+        dialog.IsFolderPicker = true;
+
+        CommonFileDialogResult result = dialog.ShowDialog();
+
+        if (result == CommonFileDialogResult.Ok)
+        {
+            backupDirTxtB.Text = dialog.FileName;
+
+            var f = App.AppConfig.GetSection("AppSettings") as AppSettings;
+            f.BackupDirectory = dialog.FileName;
             App.AppConfig.Save();
         }
     }

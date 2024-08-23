@@ -14,6 +14,10 @@ using TheIslandPostManager.Services;
 using TheIslandPostManager.Windows;
 using Wpf.Ui;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
+using NetSparkleUpdater.Enums;
+using NetSparkleUpdater.SignatureVerifiers;
+using NetSparkleUpdater;
+using System.Drawing;
 
 namespace TheIslandPostManager;
 /// <summary>
@@ -79,12 +83,22 @@ public partial class App
                 services.AddSingleton<Views.Pages.SettingsPage>();
                 services.AddSingleton<ViewModels.SettingsViewModel>();
 
+                services.AddSingleton<Views.Pages.BackupPage>();
+                services.AddSingleton<ViewModels.BackupPageViewModel>();
+
+                services.AddTransient<Views.Pages.OrderHistoryEditorPage>();
+                services.AddTransient<ViewModels.OrderHistoryEditorPageViewmodel>();
+
+
+                services.AddTransient<Views.Pages.CompleteOrderPage>();
+                services.AddTransient<Dialogs.CompleteOrderDialogViewModel>();
+
                 //services.AddSingleton<CustomerWindow>();
                 //services.AddSingleton<ViewModels.CustomerWindowViewmodel>();
 
 
                 var settings = AppConfig.GetSection("AppSettings") as AppSettings;
-                
+
                 var smtp = new SmtpClient
                 {
                     Host = settings.Host,
@@ -92,7 +106,8 @@ public partial class App
                     EnableSsl = settings.EnableSSL,
                     UseDefaultCredentials = false,
                     DeliveryMethod = SmtpDeliveryMethod.Network,
-                    Credentials = new NetworkCredential(settings.Email, settings.Password)
+                    Credentials = new NetworkCredential(settings.Email, settings.Password),
+                    Timeout = settings.EmailTimeout * 1000
                 };
 
 
@@ -107,6 +122,7 @@ public partial class App
             }
         )
         .Build();
+    private SparkleUpdater _sparkle;
 
     /// <summary>
     /// Gets registered service.
@@ -127,6 +143,23 @@ public partial class App
     private async void OnStartup(object sender, StartupEventArgs e)
      {
 
+        // NOTE: Under most, if not all, circumstances, SparkleUpdater should be initialized on your app's main UI thread.
+        // This way, if you're using a built-in UI with no custom adjustments, all calls to UI objects will automatically go to the UI thread for you.
+        // Basically, SparkleUpdater's background loop will make calls to the thread that the SparkleUpdater was created on via SyncronizationContext.
+        // So, if you start SparkleUpdater on the UI thread, the background loop events will auto-call to the UI thread for you.
+        _sparkle = new SparkleUpdater(
+            "http://example.com/appcast.xml", // link to your app cast file
+            new Ed25519Checker(SecurityMode.Strict, // security mode -- use .Unsafe to ignore all signature checking (NOT recommended!!)
+                               "base_64_public_key") // your base 64 public key -- generate this with the NetSparkleUpdater.Tools.AppCastGenerator .NET CLI tool on any OS
+        )
+        {
+            UIFactory = new NetSparkleUpdater.UI.WPF.UIFactory(null), // or null, or choose some other UI factory, or build your own IUIFactory implementation!
+            RelaunchAfterUpdate = false, // default is false; set to true if you want your app to restart after updating (keep as false if your installer will start your app for you)
+            CustomInstallerArguments = "", // set if you want your installer to get some command-line args
+        };
+        _sparkle.StartLoop(true); // `true` to run an initial check online -- only call StartLoop **once** for a given SparkleUpdater instance!
+
+
         //ExeConfigurationFileMap fileMap = new ExeConfigurationFileMap();
         //fileMap.ExeConfigFilename = AppConfig.FilePath;
         //Configuration configuration = ConfigurationManager.OpenMappedExeConfiguration(fileMap, ConfigurationUserLevel.None);
@@ -145,7 +178,9 @@ public partial class App
 
         //ConfigurationManager.OpenExeConfiguration(Assembly.GetEntryAssembly().Location);
 
-       // var setting = AppConfig.GetSection("AppSettings");
+        var setting = AppConfig.GetSection("AppSettings") as AppSettings;
+
+        setting.InputDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Input");
         await _host.StartAsync();
     } 
 

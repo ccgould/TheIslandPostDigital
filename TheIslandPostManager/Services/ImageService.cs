@@ -5,7 +5,6 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using TheIslandPostManager.Helpers;
 using ImageObj = TheIslandPostManager.Models.ImageObj;
 using CommunityToolkit.Mvvm.ComponentModel;
-using System.Drawing.Imaging;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
@@ -58,17 +57,21 @@ public partial class ImageService : ObservableObject, IImageService
             //ProgressBarValue = 0;
             messageService.ShowSnackBarMessage("Import Finished", "All Images have been imported successfully");
             //IsBusy = false;
+            GC.Collect();
         }
     }
 
-    public async Task DeleteImage(ImageObj image)
+    public async Task<bool> DeleteImage(ImageObj image)
     {
-        var result = await messageService.ShowMessage("Delete", $"Are you sure you would like to delete {image.Name}");
+        var result = await messageService.ShowMessage("Delete", $"Are you sure you would like to delete {image.Name}","NO", ControlAppearance.Secondary, true);
 
         if(result == MessageBoxResult.Primary)
         {
             GetCurrentOrder().CurrentImages.Remove(image);
+            return true;
         }
+
+        return false;
     }
 
     public void AddImage(ImageObj image)
@@ -141,7 +144,7 @@ public partial class ImageService : ObservableObject, IImageService
         {
             image.IsPrintable = true;
             image.IsSelected = true;
-
+            orderService.AddImageToOrderPrints(image);
         }
     }
 

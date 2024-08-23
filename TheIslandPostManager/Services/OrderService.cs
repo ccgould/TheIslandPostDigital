@@ -20,7 +20,10 @@ public partial class OrderService : ObservableObject, IOrderService
     [ObservableProperty] private ObservableCollection<Order> purchaseHistory = new();
     [ObservableProperty] private ObservableCollection<Order> pendingOrders = new();
     [ObservableProperty] private Order currentOrder;
+    [ObservableProperty] private Order currentHistoryOrder;
     [ObservableProperty] private bool isBusy;
+    [ObservableProperty] private bool showImageViewer = true;
+    [ObservableProperty] private bool showGridViewer = false;
 
     private AppSettings? settings => App.AppConfig.GetSection("AppSettings") as AppSettings;
     private readonly IMessageService messageService;
@@ -42,7 +45,11 @@ public partial class OrderService : ObservableObject, IOrderService
         _appDataLocation = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data");
         _tempFolder = Path.Combine(_appDataLocation, "Temp");
         _inputFolder = Path.Combine(_appDataLocation, "Input");
-        pendingOrders = mySQLService.GetPendingOrders();
+    }
+
+    public async Task GetPendingOrders()
+    {
+        PendingOrders = await mySQLService.GetPendingOrders();
     }
 
     public async Task CreateOrder(bool copy = false)
@@ -78,9 +85,11 @@ public partial class OrderService : ObservableObject, IOrderService
 
     public void DeleteOrder(Order order)
     {
+        //fileService.Purge(CurrentOrder);
         order.Finalize();
         CurrentOrders.Remove(order);
         PurchaseHistory.Add(order);
+        GC.Collect();
     }
 
     public void DeleteOrder(string orderId)
@@ -93,6 +102,7 @@ public partial class OrderService : ObservableObject, IOrderService
     {
         CurrentOrders.Clear();
         await CreateOrder();
+        GC.Collect();
     }
 
     public void Cancel(Order order)
@@ -103,6 +113,7 @@ public partial class OrderService : ObservableObject, IOrderService
         {
             CurrentOrder = null;
         }
+        GC.Collect();
     }
 
     public async Task CompleteOrderAsync()
@@ -143,26 +154,30 @@ public partial class OrderService : ObservableObject, IOrderService
 
                             await fileService.Copy(files);
                         }
+                        image.ImageUrl = outputFile;
                     });
                 }
             }
 
-            var emails = CurrentOrder.Email.Split(',');
-
-            if(emails.Length > 1)
+            if (!string.IsNullOrWhiteSpace(CurrentOrder.Email))
             {
-                for (int i = 1;i < emails.Length;i++)
-                {
-                    CurrentOrder.CC.Add(new FluentEmail.Core.Models.Address(emails[i].Trim()));
-                }
+                var emails = CurrentOrder.Email.Split(',');
 
-                CurrentOrder.Email = emails[0].Trim();
+                if (emails.Length > 1)
+                {
+                    for (int i = 1; i < emails.Length; i++)
+                    {
+                        CurrentOrder.CC.Add(new FluentEmail.Core.Models.Address(emails[i].Trim()));
+                    }
+
+                    CurrentOrder.Email = emails[0].Trim();
+                }
             }
         });
 
         fileService.OpenLocation(CurrentOrder.GetOutputLocation());
 
-        mySQLService.AddCompletedOrder(CurrentOrder);
+        await mySQLService.AddCompletedOrder(CurrentOrder);
 
         //Delete Order
         DeleteOrder(CurrentOrder);
@@ -172,11 +187,7 @@ public partial class OrderService : ObservableObject, IOrderService
     }
 
     internal void AddWaterMark(string path, string originalImage, Action<string, string> callback)
-    {
-
-        
-
-        
+    {             
         var fileName = Path.GetFileNameWithoutExtension(originalImage);
         var ext = Path.GetExtension(originalImage);
         var newFileName = $"{fileName}_watermarked{ext}";
@@ -282,39 +293,52 @@ public partial class OrderService : ObservableObject, IOrderService
 
     public async Task PendOrder(string name)
     {
-        var dirName = Path.Combine(settings.PendingDirectory, Guid.NewGuid().ToString());
-
-        CurrentOrder.Name = name;
-
-        if(fileService.CreateDirectory(dirName))
+        try
         {
-            foreach (ImageObj item in CurrentOrder.CurrentImages)
+            if (CurrentOrder.CurrentImages.Count <= 0)
             {
-                var imgPath = Directory.GetParent(item.ImageUrl);
-
-                var dirInfo = new DirectoryInfo(item.ImageUrl);
-                var dirInfo2 = new DirectoryInfo(settings.PendingDirectory);
-
-                if (IsStrictSubDirectoryOf(dirInfo, dirInfo2))
-                {
-                    continue;
-                }
-                var newFileName = Path.Combine(dirName, item.Name);
-                await fileService.Move(new(item.ImageUrl, newFileName));
-                item.ImageUrl = newFileName;
+                messageService.ShowSnackBarMessage("Error", "Please import images to pend.", Wpf.Ui.Controls.ControlAppearance.Caution, Wpf.Ui.Controls.SymbolRegular.ThumbDislike24);
+                return;
             }
 
+            var dirName = Path.Combine(settings.PendingDirectory, Guid.NewGuid().ToString());
 
+            CurrentOrder.Name = name;
+
+            if (fileService.CreateDirectory(dirName))
+            {
+                foreach (ImageObj item in CurrentOrder.CurrentImages)
+                {
+                    var imgPath = Directory.GetParent(item.ImageUrl);
+
+                    var dirInfo = new DirectoryInfo(item.ImageUrl);
+                    var dirInfo2 = new DirectoryInfo(settings.PendingDirectory);
+
+                    if (IsStrictSubDirectoryOf(dirInfo, dirInfo2))
+                    {
+                        continue;
+                    }
+                    var newFileName = Path.Combine(dirName, item.Name);
+                    await fileService.Move(new(item.ImageUrl, newFileName));
+                    item.ImageUrl = newFileName;
+                }
+
+
+            }
+
+            CurrentOrder.Thumbnail = CurrentOrder.CurrentImages.FirstOrDefault().LowImage;
+            CurrentOrder.DownloadURL = dirName;
+            CurrentOrder.Date = DateTime.Now;
+            PendingOrders.Add(CurrentOrder);
+            await mySQLService.AddPendingOrder(CurrentOrder);
+            //CurrentOrder.Thumbnail = LoadImageFile(ThumnailLocationFormat(CurrentOrder));
+            //SavePendingOrder(order);
+            Cancel(CurrentOrder);
         }
-
-        CurrentOrder.Thumbnail = CurrentOrder.CurrentImages.FirstOrDefault().LowImage;
-        CurrentOrder.DownloadURL = dirName;
-        CurrentOrder.Date = DateTime.Now;
-        PendingOrders.Add(CurrentOrder);
-        mySQLService.AddPendingOrder(CurrentOrder);
-        //CurrentOrder.Thumbnail = LoadImageFile(ThumnailLocationFormat(CurrentOrder));
-        //SavePendingOrder(order);
-        Cancel(CurrentOrder);
+        catch (Exception ex)
+        {
+            messageService.ShowSnackBarMessage("Error", ex.Message, Wpf.Ui.Controls.ControlAppearance.Primary, Wpf.Ui.Controls.SymbolRegular.ThumbDislike24);
+        }
     }
 
     internal bool IsSubDirectoryOfOrSame(DirectoryInfo directoryInfo, DirectoryInfo potentialParent)
@@ -354,16 +378,16 @@ public partial class OrderService : ObservableObject, IOrderService
         }
         PendingOrders.Remove(order);
         fileService.DeleteDirectory(order.DownloadURL);
-        mySQLService.RemovePendingOrder(order);
+        await mySQLService.RemovePendingOrder(order);
     }
 
     public async Task DeletePendingOrder(Order order)
     {
-        var result = await messageService.ShowMessage("Delete Pending Order", $"Are you sure you would like to delete {order.Name} pending order", "NO");
+        var result = await messageService.ShowMessage("Delete Pending Order", $"Are you sure you would like to delete {order.Name} pending order", "NO", Wpf.Ui.Controls.ControlAppearance.Secondary,true);
         
         if(result == Wpf.Ui.Controls.MessageBoxResult.Primary)
         {
-            mySQLService.RemovePendingOrder(order);
+            await mySQLService.RemovePendingOrder(order);
             fileService.DeleteDirectory(order.DownloadURL);
             PendingOrders.Remove(order);
         }
@@ -379,6 +403,7 @@ public partial class OrderService : ObservableObject, IOrderService
         image.IsPending = !image.IsPending;
         RemoveImageFromOrder(image);
     }
+
 }
 public class DirectoryInfoComparer : IEqualityComparer<DirectoryInfo>
 {

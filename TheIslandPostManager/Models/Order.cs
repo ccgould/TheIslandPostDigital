@@ -4,8 +4,10 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
+using TheIslandPostManager.Services;
 
 namespace TheIslandPostManager.Models;
 
@@ -32,6 +34,8 @@ public partial class Order : ObservableObject
     [ObservableProperty] private decimal vatTotal;
     [ObservableProperty] private int approvedImagesCount;
     [ObservableProperty] private int approvedPrintsCount;
+    [ObservableProperty] private int videoCount;
+    [ObservableProperty] private string orderPath;
     [ObservableProperty] private DateTime date;
     [ObservableProperty] private bool isFinalized;
     [ObservableProperty] private bool isCompleteingOrder;
@@ -41,6 +45,10 @@ public partial class Order : ObservableObject
 
     private string _orderFilter = "All";
     internal object EmployeeID;
+
+
+    [ObservableProperty] private Employee employee;
+    [ObservableProperty] private ObservableCollection<PurchaseItem> purchaseItems;
 
     public string OrderFilter
     {
@@ -73,11 +81,16 @@ public partial class Order : ObservableObject
         };
     }
 
+    public int MyProperty { get; set; }
+
     private bool FilterImages(object obj)
     {
         //TODO Add Filter
 
         var image = (ImageObj)obj;
+
+        if (this._orderFilter == null)
+            return true;
 
         switch (OrderFilter)
         {
@@ -90,20 +103,30 @@ public partial class Order : ObservableObject
             case "Both":
                 return image.IsPending || image.IsSelected;
             default:
-                break;
+                return false;
         }
-        return false;
     }
-
     internal string GetOutputLocation()
     {
         var settings = App.AppConfig.GetSection("AppSettings") as AppSettings;
-        return Path.Combine(settings.OutputDirectory, Name);
+        return Path.Combine(settings.OutputDirectory, DateTime.Now.ToString("MMM_dd_yyyy"), Name);
     }
     
     internal void Finalize()
     {
-        Date = DateTime.Now;
+        try
+        {
+            Date = DateTime.Now;
+            foreach (var item in CurrentImages)
+            {
+                if (string.IsNullOrWhiteSpace(item.RootImageUrl)) continue;
+                File.Delete(item.RootImageUrl);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show("Failed to delete image from inout directrory " + ex.Message, "Error");
+        }
     }
 
     internal string GetSubOutputLocation()
@@ -151,6 +174,7 @@ public partial class Order : ObservableObject
     }
 
     internal void DisApproveImage(ImageObj image)
+    
     {
         if (image is null)
         {
@@ -161,8 +185,9 @@ public partial class Order : ObservableObject
         {
             image.IsSelected = false;
             ApprovedImages.Remove(image);
-            UpdateSelectionCounts();
         }
+
+        UpdateSelectionCounts();
     }
 
     internal void ApprovePrint(ImageObj image)
@@ -181,6 +206,12 @@ public partial class Order : ObservableObject
             ApprovedPrints.Remove(image);
             UpdateSelectionCounts();
         }
+    }
+
+    internal void RefreshImages(string selection)
+    {
+        this._orderFilter = selection;
+        this.OrderCollectionView.Refresh();
     }
 
     internal void MaybeImage()
@@ -221,7 +252,10 @@ public partial class Order : ObservableObject
 
         var vatPercent = vat / 100m;
 
-        CartTotal = Math.Round(total * (1 + vatPercent),2);
+        //CartTotal = Math.Round(total * (1 + vatPercent),2); Charlie doesnt want to show the vat total
+
+        CartTotal = total;
+
 
         VatTotal = Math.Round(CartTotal - total,2);
     }

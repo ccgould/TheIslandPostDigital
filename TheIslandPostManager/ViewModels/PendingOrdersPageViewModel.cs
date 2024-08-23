@@ -8,6 +8,7 @@ namespace TheIslandPostManager.ViewModels;
 public partial class PendingOrdersPageViewModel : ObservableObject
 {
    [ObservableProperty] private IOrderService orderService;
+   [ObservableProperty] private bool isBusy;
 
     public PendingOrdersPageViewModel(IOrderService orderService)
     {
@@ -24,5 +25,13 @@ public partial class PendingOrdersPageViewModel : ObservableObject
     private async Task OpenOrderFromPending(Order order)
     {
         await OrderService.OpenOrderFromPending(order);
+    }
+
+    [RelayCommand]
+    private async Task RetrievePendingOrders()
+    {
+        IsBusy = true;
+        await OrderService.GetPendingOrders();
+        IsBusy = false;
     }
 }

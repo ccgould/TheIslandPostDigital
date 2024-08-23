@@ -8,17 +8,17 @@
         xmlns:converters="clr-namespace:TheIslandPostManager.Converters"
         xmlns:model="clr-namespace:TheIslandPostManager.Models"
         mc:Ignorable="d"
-                ScrollViewer.CanContentScroll="False"
+        ScrollViewer.CanContentScroll="False"
         Width="1100"
-Height="650"
-d:DesignHeight="450"
-d:DesignWidth="800"
-
-ExtendsContentIntoTitleBar="True"
-
-WindowCornerPreference="Round"
-WindowStartupLocation="CenterScreen"
+        Height="650"
+        d:DesignHeight="450"
+        d:DesignWidth="800"
+        ExtendsContentIntoTitleBar="True"
+        WindowCornerPreference="Round"
+        Loaded="Window_Loaded"
         Title="CustomerViewWindow">
+    
+    
     <ui:FluentWindow.Resources>
         <ResourceDictionary>
             <converters:BoolToColorConverter x:Key="BoolToColorConverter"/>
@@ -58,6 +58,11 @@ WindowStartupLocation="CenterScreen"
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
+            <Image Grid.Row="1" Grid.ColumnSpan="3" Grid.RowSpan="1" Source="/Assets/islandPostLogo.png" Opacity=".2"/>
+
+
+            <!--Selection Amounts-->
+            
             <Border Grid.ColumnSpan="3" HorizontalAlignment="Right" Width="150" CornerRadius="8" Margin="0,0,10,0">
                 <StackPanel Orientation="Horizontal">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,10,0">
@@ -71,6 +76,7 @@ WindowStartupLocation="CenterScreen"
                 </StackPanel>
             </Border>
 
+            <!--Image Details-->
             <StackPanel  Grid.Row="0" HorizontalAlignment="Center" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="10">
                 <TextBlock  Text="{Binding OrderService.CurrentOrder.CurrentImage.Index, StringFormat={}({0}) - }" FontWeight="Bold"  HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="White"/>
                 <TextBlock  Text="{Binding OrderService.CurrentOrder.CurrentImage.Name}"  HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="White"/>
@@ -80,17 +86,10 @@ WindowStartupLocation="CenterScreen"
                     <TextBlock  Text="{Binding OrderService.CurrentOrder.CurrentImages.Count}"  HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="White"/>
                 </StackPanel>
             </StackPanel>
-
-            <ui:Button Focusable="False" ToolTipService.ToolTip="Previous Image" x:Name="prevBtn" Grid.RowSpan="2" Margin="5" Command="{Binding PreviousPhotoCommand}" Click="Reset">
-                <ui:SymbolIcon
-                Grid.Row="0"
-                FontSize="28"
-                Symbol="ArrowLeft12"
-                Foreground="White"
-                Filled="True"/>
-            </ui:Button>
-
-            <model:ZoomBorder x:Name="zoomBorder" ClipToBounds="True" Background="Transparent" Grid.Column="1" Grid.Row="1"  FocusVisualStyle="{x:Null}" >
+            
+                
+            <!--Image Veiwer-->
+            <model:ZoomBorder Visibility="{Binding OrderService.ShowImageViewer, Converter={StaticResource BoolToVis}, FallbackValue=Hidden}" x:Name="zoomBorder" ClipToBounds="True" Background="Transparent" Grid.Column="1" Grid.Row="1"  FocusVisualStyle="{x:Null}" >
                 <model:ZoomBorder.InputBindings>
                     <KeyBinding 
                     Key="Left"
@@ -119,55 +118,60 @@ WindowStartupLocation="CenterScreen"
 
             </model:ZoomBorder>
 
-            <ui:Button Focusable="False" ToolTipService.ToolTip="Next Image" x:Name="nextBtn"  Grid.RowSpan="2" Grid.Column="2" Margin="5,5,10,20" Command="{Binding NextPhotoCommand}" Click="Reset">
-                <ui:SymbolIcon
-                Grid.Row="0"
-                FontSize="28"
-                Symbol="ArrowRight12"
-                Foreground="White"
-                Filled="True"/>
-            </ui:Button>
 
-            <Grid Grid.ColumnSpan="3" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Bottom" Visibility="Collapsed">
-                <StackPanel Orientation="Horizontal" Background="Black" x:Name="buttonView">
-                    <ui:Button Focusable="False" ToolTipService.ToolTip="Yes" Margin="5" Command="{Binding SelectPhotoCommand}">
-                        <ui:SymbolIcon
-                        Grid.Row="0"
-                        FontSize="28"
-                        Symbol="ThumbLike24"
-                        Foreground="Green"
-                        Filled="True"/>
-                    </ui:Button>
-                    <ui:Button Focusable="False" ToolTipService.ToolTip="Maybe" Margin="5" Command="{Binding SetAsMaybeCommand}">
-                        <ui:SymbolIcon
-                        Grid.Row="0"
-                        FontSize="28"
-                        Symbol="ThumbDislike24"
-                        Foreground="Orange"
-                        Filled="True"/>
-                    </ui:Button>
-                    <ui:Button Focusable="False" ToolTipService.ToolTip="Toggle as printing" Margin="5" Command="{Binding PrintPhotoCommand}">
-                        <ui:SymbolIcon
-                        Grid.Row="0"
-                        FontSize="28"
-                        Symbol="Print16"
-                        Foreground="{Binding OrderService.CurrentOrder.CurrentImage.IsPrintable, Converter={StaticResource BoolToColorConverter}, ConverterParameter=LightGreen;White;1, Mode=OneWay}"
-                        Filled="True"/>
-                    </ui:Button>
-                    <ui:Button Focusable="False" ToolTipService.ToolTip="Delete Image" Margin="5" Appearance="Primary" Command="{Binding DeletePhotoCommand}" CommandParameter="{Binding .}">
-                        <ui:SymbolIcon
-                        Grid.Row="0"
-                        FontSize="28"
-                        Symbol="Delete16"
-                        Foreground="White"
-                        Filled="True"/>
-                    </ui:Button>
-                </StackPanel>
-            </Grid>
+            <ui:ListView Visibility="{Binding OrderService.ShowGridViewer, Converter={StaticResource BoolToVis}, FallbackValue=Hidden}" Grid.Column="1" Grid.Row="1" ItemsSource="{Binding OrderService.CurrentOrder.CurrentImages}" IsSynchronizedWithCurrentItem="True">
+                <ui:ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Margin="10">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Border Grid.Row="0" Margin="5" CornerRadius="8" Background="#272727" HorizontalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock  Text="{Binding Index, StringFormat={}({0}) - }" FontWeight="Bold"  HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="White"/>
+                                        <TextBlock  Text="{Binding Name}"  HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="White"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Row="1"  Width="400" Height="300" CornerRadius="5" Margin="5">
+                                    <Border.Background>
+                                        <ImageBrush ImageSource="{Binding LowImage}" Stretch="Uniform" RenderOptions.BitmapScalingMode="Fant"/>
+                                    </Border.Background>
+                                    <Grid Opacity=".8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="100"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="100"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+
+                                        <Grid Height="100" Width="100" Grid.RowSpan="2" Grid.ColumnSpan="2" VerticalAlignment="Center">
+                                            <ui:SymbolIcon Symbol="Emoji48" Foreground="#00e200" Visibility="{Binding IsSelected, Converter={StaticResource BoolToVis}, FallbackValue=Hidden}" Filled="True"/>
+                                            <ui:SymbolIcon Symbol="EmojiSadSlight24" Foreground="#ffa500" Visibility="{Binding IsPending, Converter={StaticResource BoolToVis}, FallbackValue=Hidden}" Filled="True"/>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ui:ListView.ItemTemplate>
+                <ui:ListView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="3" HorizontalAlignment="Stretch"/>
+                    </ItemsPanelTemplate>
+                </ui:ListView.ItemsPanel>
+            </ui:ListView>
 
         </Grid>
 
-        <ScrollViewer Grid.Column="1" Margin="10,30,10,10" Grid.RowSpan="2" Width="600" Visibility="{Binding OrderService.CurrentOrder.IsCompleteingOrder,Converter={StaticResource BoolToVis}, FallbackValue=Hidden}" IsEnabled="{Binding Service.IsCompleteingOrder}">
+        <!--Customer Info and Sales-->
+        <ScrollViewer Grid.Column="1" Margin="10,30,10,10" Grid.RowSpan="2" Width="600" Visibility="{Binding OrderService.CurrentOrder.IsCompleteingOrder,Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}" IsEnabled="{Binding Service.IsCompleteingOrder}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>

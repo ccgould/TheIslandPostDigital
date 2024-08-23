@@ -18,6 +18,7 @@ xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
 
                         <StackPanel Grid.Column="0" Orientation="Horizontal">
                             <ui:Button
+                                IsTabStop="False"
                                 Margin="0,0,5,0"
                                 Command="{Binding Path=TemplateButtonCommand, RelativeSource={RelativeSource TemplatedParent}}"
                                 CommandParameter="openCustmerView"
@@ -30,6 +31,7 @@ xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                             Margin="4,0,4,0" />
 
                             <ui:Button
+                                IsTabStop="False"
                                 Margin="0,0,5,0"
                                 Command="{Binding Path=TemplateButtonCommand, RelativeSource={RelativeSource TemplatedParent}}"
                                 CommandParameter="importPhotos"
@@ -37,6 +39,7 @@ xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                                 <ui:SymbolIcon Symbol="ImageAdd24" FontSize="18"/>
                             </ui:Button>
                             <ui:Button
+                                IsTabStop="False"
                                 Margin="0,0,5,0"
                                 Command="{Binding Path=TemplateButtonCommand, RelativeSource={RelativeSource TemplatedParent}}"
                                 CommandParameter="selectAll"
@@ -44,6 +47,7 @@ xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                                 <ui:SymbolIcon Symbol="SelectAllOn24" FontSize="18"/>
                             </ui:Button>
                             <ui:Button
+                                IsTabStop="False"
                                 Margin="0,0,5,0"
                                 Command="{Binding Path=TemplateButtonCommand, RelativeSource={RelativeSource TemplatedParent}}"
                                 CommandParameter="deselectAll"
@@ -51,6 +55,7 @@ xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                                 <ui:SymbolIcon Symbol="SelectAllOff24" FontSize="18"/>
                             </ui:Button>
                             <ui:Button
+                                IsTabStop="False"
                                 Margin="0,0,5,0"
                                 Command="{Binding Path=TemplateButtonCommand, RelativeSource={RelativeSource TemplatedParent}}"
                                 CommandParameter="printAll"
@@ -58,6 +63,7 @@ xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                                 <ui:SymbolIcon Symbol="Print16" FontSize="18"/>
                             </ui:Button>
                             <ui:Button
+                                IsTabStop="False"
                                 Margin="0,0,5,0"
                                 Command="{Binding Path=TemplateButtonCommand, RelativeSource={RelativeSource TemplatedParent}}"
                                 CommandParameter="deleteAll"
@@ -71,23 +77,30 @@ xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                             Margin="4,0,4,0" />
                             <StackPanel Orientation="Horizontal">
                                 <Label Content="Filter" VerticalAlignment="Center"/>
-                                <ComboBox x:Name="filterCombo" SelectedIndex="0" Margin="10" Width="150">
+                                <ComboBox IsTabStop="False" x:Name="filterCombo" SelectedIndex="0" Margin="10" Width="150" SelectedItem="{Binding Path=SelectedItem, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
                                     <ComboBoxItem>All</ComboBoxItem>
                                     <ComboBoxItem>Selected</ComboBoxItem>
                                     <ComboBoxItem>Maybe</ComboBoxItem>
                                     <ComboBoxItem>Both</ComboBoxItem>
                                 </ComboBox>
                             </StackPanel>
+                            <StackPanel Orientation="Vertical" Margin="10,0">
+                                <TextBlock Text="Toggle Customer Grid View" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                                <ui:ToggleSwitch HorizontalAlignment="Center" OffContent="Grid View Off" OnContent="Grid View On"  x:Name="toggleGrid" IsChecked="{Binding Path=IsChecked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"/>
+
+                            </StackPanel>
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal" Grid.Column="1">
                             <ui:Button
+                                IsTabStop="False"
                                     Command="{Binding Path=TemplateButtonCommand, RelativeSource={RelativeSource TemplatedParent}}"
                                     CommandParameter="createOrder"
                                     ToolTip="Create Order">
                                 <ui:SymbolIcon Symbol="Add12" FontSize="18"/>
                             </ui:Button>
                             <ui:Button
+                                IsTabStop="False"
                                     Margin="10,0,0,0"
                                     Grid.Column="1"
                                     Command="{Binding Path=TemplateButtonCommand, RelativeSource={RelativeSource TemplatedParent}}"
@@ -101,6 +114,7 @@ xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                             Height="16"
                             Margin="4,0,4,0" />
                         <ui:Button
+                            IsTabStop="False"
                                 Grid.Column="3"
                                 Command="{Binding Path=TemplateButtonCommand, RelativeSource={RelativeSource TemplatedParent}}"
                                 CommandParameter="cancelOrder"

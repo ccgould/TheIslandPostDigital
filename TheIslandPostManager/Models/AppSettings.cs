@@ -104,6 +104,13 @@ public class AppSettings : ConfigurationSection
         set { this["host"] = value; }
     }
 
+    [ConfigurationProperty("emailTimeout", DefaultValue = 2)]
+    public int EmailTimeout
+    {
+        get { return (int)this["emailTimeout"]; }
+        set { this["emailTimeout"] = value; }
+    }
+
     [ConfigurationProperty("companyName", DefaultValue = "")]
     public string CompanyName
     {
@@ -135,4 +142,38 @@ public class AppSettings : ConfigurationSection
         set { this["imageQuality"] = value; }
     }
 
+    [ConfigurationProperty("mySqlUsername", DefaultValue = "root")]
+    public string MySqlUsername
+    {
+        get { return (string)this["mySqlUsername"]; }
+        set { this["mySqlUsername"] = value; }
+    }
+
+    [ConfigurationProperty("mysqlDatabaseName", DefaultValue = "")]
+    public string MysqlDatabaseName
+    {
+        get { return (string)this["mysqlDatabaseName"]; }
+        set { this["mysqlDatabaseName"] = value; }
+    }
+
+    [ConfigurationProperty("mysqlDatasource", DefaultValue = "")]
+    public string MysqlDatasource
+    {
+        get { return (string)this["mysqlDatasource"]; }
+        set { this["mysqlDatasource"] = value; }
+    }
+
+    [ConfigurationProperty("mysqlPassword", DefaultValue = "")]
+    public string MysqlPassword
+    {
+        get { return (string)this["mysqlPassword"]; }
+        set { this["mysqlPassword"] = value; }
+    }
+
+    [ConfigurationProperty("mysqlPortNumber", DefaultValue = 3306)]
+    public int MysqlPortNumber
+    {
+        get { return (int)this["mysqlPortNumber"]; }
+        set { this["mysqlPortNumber"] = value; }
+    }
 }

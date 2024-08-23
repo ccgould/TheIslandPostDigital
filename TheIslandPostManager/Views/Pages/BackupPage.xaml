@@ -1,0 +1,103 @@
+﻿<Page x:Class="TheIslandPostManager.Views.Pages.BackupPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:TheIslandPostManager.Views.Pages"
+      xmlns:controls="clr-namespace:TheIslandPostManager.Controls"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      ScrollViewer.CanContentScroll="False"
+      controls:ImagesControlModule.Show="False"
+      Title="BackupPage">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/> 
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Column="0" Grid.Row="0" CornerRadius="10" Width="500" Height="300"  Background="#202020">
+            <StackPanel Orientation="Vertical" VerticalAlignment="Center">
+                <Border Width="100" Height="100" Background="#2d2d2d" CornerRadius="50">
+                    <ui:SymbolIcon Symbol="Storage24" Foreground="White" Filled="False" FontSize="50"/>
+                </Border>
+                <Label Content="{Binding ElementName=driveCmb,Path=SelectedItem.VolumeLabel}" FontWeight="Bold" FontSize="50" Foreground="White" HorizontalAlignment="Center" Margin="0,10"/>
+                <Grid Margin="30,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox x:Name="driveCmb"  ItemsSource="{Binding Drives}" SelectedItem="{Binding SelectedDrive, UpdateSourceTrigger=PropertyChanged}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Label Content="{Binding VolumeLabel}"/>
+                                    <Label ContentStringFormat="({0})"  Content="{Binding Name}"  Margin="10,0"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <ui:Button Grid.Column="1" Margin="5,0" Command="{Binding GetMemoryCardsCommand}">
+                        <ui:SymbolIcon Symbol="ArrowCounterclockwise24" Foreground="White" FontSize="20" ToolTip="Refresh Drive List"/>
+                    </ui:Button>
+                </Grid>
+
+                <ui:Button Content="Backup" HorizontalAlignment="Center" Margin="5" Command="{Binding BackupCommand}"/>
+
+                <Grid Margin="0,5,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="{Binding Path=BackupPercentage}" ContentStringFormat="{}{0}%" Grid.Row="0" Grid.Column="0" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.ColumnSpan="2"/>
+                    <ProgressBar Value="{Binding BackupPercentage}" Grid.Row="1" Grid.Column="0" Margin="10,0"/>
+                    <ui:ProgressRing Grid.Column="1" Grid.Row="1" Margin="0,0,10,0" Height="30" Width="30" IsIndeterminate="True" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
+
+                </Grid>
+
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Column="1" Grid.Row="0" CornerRadius="10" Width="500" Height="300"  Background="#202020">
+            <StackPanel Orientation="Vertical" VerticalAlignment="Center" Margin=" 0,0,0,10">
+                <Border Grid.Row="0" Width="100" Height="100" Background="#2d2d2d" CornerRadius="50">
+                    <ui:SymbolIcon Symbol="CalendarRtl24" Foreground="White" Filled="False" FontSize="50"/>
+                </Border>
+                <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Center">
+                    <!--<ui:SymbolIcon Symbol="CalendarRtl24" Foreground="White" FontWeight="Bold"/>-->
+                    <Label Content="Backup Deletion:" Foreground="White" FontWeight="Bold" Margin="3,0,10,0"/>
+                    <Label Content="{Binding DaysLeftText}" Foreground="White" FontWeight="SemiBold"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" Grid.ColumnSpan="2" BorderThickness="3" BorderBrush="#202020" CornerRadius="5,5,0,0" Margin="10,10,10,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Background="#202020">
+                    <Label Content="Log" FontWeight="Bold" Margin="10,0,0,0"/>
+                </Grid>
+                
+                <ScrollViewer Grid.Row="1"  Margin="10" >
+                    <TextBlock Foreground="White" TextWrapping="Wrap" x:Name="Log" Text="{Binding LogText}">
+                    </TextBlock>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+    </Grid>
+</Page>

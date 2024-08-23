@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"
+	xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+	<channel>
+		<title>Application</title>
+		<description>Most recent changes with links to updates</description>
+		<language>en</language>
+		<item>
+			<title>Application 1.0.0+ae5d4f511827b5d988326815f273c1ccbe8f60e2</title>
+			<pubDate>Thu, 20 Jun 2024 09:47:47 -04:00</pubDate>
+			<sparkle:version>1.0.0+ae5d4f511827b5d988326815f273c1ccbe8f60e2</sparkle:version>
+			<sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
+			<enclosure url="TheIslandPostManager.exe" sparkle:version="1.0.0+ae5d4f511827b5d988326815f273c1ccbe8f60e2" sparkle:shortVersionString="1.0.0" length="224256" sparkle:os="windows" type="application/octet-stream" sparkle:criticalUpdate="false" />
+		</item>
+	</channel>
+</rss>

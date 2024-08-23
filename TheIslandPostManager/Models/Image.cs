@@ -25,7 +25,7 @@ public partial class ImageObj : ObservableObject, IImage
     private bool isDirty;
     private IFileService _fileService;
 
-
+    [ObservableProperty] private string rootImageUrl;
 
     public ImageObj()
     {
@@ -35,8 +35,9 @@ public partial class ImageObj : ObservableObject, IImage
         }
     }
 
-    public ImageObj(string path)
+    public ImageObj(string path,bool loadImage = true)
     {
+        RootImageUrl = path;
         this.name = Path.GetFileName(path);
         this.imageUrl = path;
 
@@ -45,19 +46,22 @@ public partial class ImageObj : ObservableObject, IImage
             _fileService = App.GetService<IFileService>();
         }
 
-         LoadImage(path);
+        if(loadImage)
+        {
+            LoadImage(path);
+        }
     }
 
-    public ImageObj Copy(bool reset = false)
+    public ImageObj Copy(bool copy = false)
     {
+        var newFile = Path.Combine(Path.GetDirectoryName(ImageUrl), $"{Guid.NewGuid().ToString("N")}.JPG");
+        _fileService.Copy(ImageUrl, newFile);
         var result = new ImageObj();
 
-        if(reset)
+        if(copy)
         {
+            result = new ImageObj(newFile);
             result.Name = Name;
-            result.ImageUrl = ImageUrl;
-            result.LowImage = LowImage;
-            result.HDImage = HDImage;
             result.Index = Index;
         }
         else

@@ -7,7 +7,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
+using TheIslandPostManager.Services;
 using TheIslandPostManager.ViewModels;
 
 namespace TheIslandPostManager.Windows;
@@ -21,16 +23,14 @@ public partial class CustomerWindow
     {
         InitializeComponent();
         DataContext = vm;
-        zoomBorder.MouseEnter += (s, e) => Mouse.OverrideCursor = Cursors.Hand;
-        zoomBorder.MouseLeave += (s, e) => Mouse.OverrideCursor = Cursors.Arrow;
-        zoomBorder.MouseEnter += (s, e) => buttonView.Visibility = Visibility.Visible;
-        buttonView.MouseEnter += (s, e) => buttonView.Visibility = Visibility.Visible;
-
-        zoomBorder.MouseLeave += (s, e) => buttonView.Visibility = Visibility.Hidden;
-
-        zoomBorder.Focusable = true;
+        zoomBorder.Focusable = false;
 
         zoomBorder.Focus();
+    }
+
+    private void Window_Loaded(object sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState.Maximized;
     }
 
     private void Reset(object sender, RoutedEventArgs e)

@@ -36,11 +36,14 @@
         </Grid.RowDefinitions>
 
         <ui:TitleBar
+            IsTabStop="False"
             Title="{Binding ViewModel.ApplicationTitle, Mode=OneWay}"
             Grid.Row="0"
-            Icon="pack://application:,,,/Assets/applicationIcon-256.png" />
+            Icon="pack://application:,,,/Assets/applicationIcon-256.png"
+/>
 
            <ui:NavigationView
+           IsTabStop="False"
             x:Name="RootNavigation"
             Grid.Row="1"
             PaneDisplayMode="LeftFluent"
@@ -55,12 +58,12 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <ui:Image Source="/Assets/islandPostLogo.png" Width="50"/>
-                        <ui:BreadcrumbBar  Grid.Column="1"  x:Name="BreadcrumbBar" Margin="20,0,0,0" />
+                        <ui:Image IsTabStop="False" Source="/Assets/islandPostLogo.png" Width="50"/>
+                        <ui:BreadcrumbBar IsTabStop="False" Grid.Column="1"  x:Name="BreadcrumbBar" Margin="20,0,0,0" />
 
 
                     </Grid>
-                    <controls:ImagesControlModule x:Name="imageControlModule" Margin="0,10,0,0" NavigationView="{Binding ElementName=RootNavigation}" />
+                    <controls:ImagesControlModule IsTabStop="False" x:Name="imageControlModule" Margin="0,10,0,0" NavigationView="{Binding ElementName=RootNavigation}" />
                 </StackPanel>
             </ui:NavigationView.Header>
             <ui:NavigationView.ContentOverlay>

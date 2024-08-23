@@ -1,14 +1,5 @@
 ﻿using FluentEmail.Core;
-using FluentEmail.Razor;
-using FluentEmail.Smtp;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Mail;
-using System.Text;
-using System.Threading.Tasks;
 using TheIslandPostManager.Models;
 
 namespace TheIslandPostManager.Services;
@@ -43,12 +34,14 @@ internal class EmailService : IEmailService
             if (email.Successful)
             {
                 order.IsFinalized = true;
+                messageService.ShowSnackBarMessage("Email Sent", "Email sent successfully.");
+                
                 return true;
             }
         }
         catch (Exception ex)
         {
-            messageService.ShowErrorMessage("[EmailService] Error in SendEmail", ex.Message, ex.StackTrace, "");
+            await messageService.ShowErrorMessage("[EmailService] Error in SendEmail", ex.Message, ex.StackTrace, "",false);
             messageService.ShowSnackBarMessage("Email Error", "Failed to send email", Wpf.Ui.Controls.ControlAppearance.Danger, Wpf.Ui.Controls.SymbolRegular.ThumbDislike16);
         }
 

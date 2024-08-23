@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using TheIslandPostManager.Services;
 using Wpf.Ui.Controls;
 
 namespace TheIslandPostManager.Dialogs;
@@ -21,10 +22,10 @@ namespace TheIslandPostManager.Dialogs;
 public partial class CompletePendingDialog : ContentDialog
 {
     public CompletePendingDialogViewModel ViewModel { get; private set; }
-    public CompletePendingDialog(ContentPresenter contentPresenter) : base(contentPresenter)
+    public CompletePendingDialog(ContentPresenter contentPresenter,IMySQLService mySQLService) : base(contentPresenter)
     {
         InitializeComponent();
-        var vm = new CompletePendingDialogViewModel();
+        var vm = new CompletePendingDialogViewModel(mySQLService);
         DataContext = vm;
         ViewModel = vm;
     }

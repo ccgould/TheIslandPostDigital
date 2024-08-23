@@ -6,8 +6,9 @@ namespace TheIslandPostManager.Models;
 
 public partial class PurchaseItem : ObservableObject
 {
-    public PurchaseItem(string description, string data, decimal cost, int imageCount,int printCount = -1)
+    public PurchaseItem(int id,string description, string data, decimal cost, int imageCount,int printCount = -1)
     {
+        ID = id;
         Description = description;
         Data = data;
         Cost = cost;
@@ -18,6 +19,8 @@ public partial class PurchaseItem : ObservableObject
     public string Description { get; set; }
     public string Data { get; set; }
     public decimal Cost { get; set; }
+    public int ID { get; set; }
+
     [ObservableProperty] private decimal totalCost;
     [ObservableProperty] private bool isFlyoutOpen;
     [ObservableProperty] private int imageCount;
@@ -25,6 +28,7 @@ public partial class PurchaseItem : ObservableObject
 
     [ObservableProperty] private int amount;
     [ObservableProperty] private Visibility amountVisible = Visibility.Collapsed;
+    private Action _callBack;
 
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
     {
@@ -55,10 +59,17 @@ public partial class PurchaseItem : ObservableObject
     private void UpdateValues()
     {
         TotalCost = Cost * Amount;
+        _callBack?.Invoke();
     }
 
-    public void OpenFlyout()
+    public void OpenFlyout(Action callBack = null)
     {
         IsFlyoutOpen  = true;
+        _callBack = callBack;
+    }
+
+    internal void Copy(PurchaseItem item)
+    {
+        ChangeAmount(item.Amount);
     }
 }

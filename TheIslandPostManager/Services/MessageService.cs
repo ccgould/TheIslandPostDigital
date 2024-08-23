@@ -19,7 +19,7 @@ public class MessageService : IMessageService
 
     public async Task<MessageBoxResult> ShowMessage(string title, string message, string closeButtonText = "CLOSE",
         ControlAppearance closeButtonAppearance = ControlAppearance.Primary,
-        bool isPrimaryVisible = true, string primaryButtonText = "YES",
+        bool isPrimaryVisible = false, string primaryButtonText = "YES",
         bool isSecondaryVisible = false, string secondaryButtonText = "NO")
     {
         var uiMessageBox = new MessageBox
@@ -87,6 +87,7 @@ public class MessageService : IMessageService
         }
 
         Log.Error(message + " ErrorID: " + errorID);
+        Log.Error(stackTrace);
     }
     /// <summary>
     /// Displays a message at the bottom of the application for a set amount of seconds

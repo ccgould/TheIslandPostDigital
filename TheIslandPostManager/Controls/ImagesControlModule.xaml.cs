@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using TheIslandPostManager.ViewModels;
 using TheIslandPostManager.Views.Pages;
 using Wpf.Ui.Controls;
 
@@ -20,6 +21,68 @@ public  class ImagesControlModule : Control
         typeof(FrameworkElement),
         new FrameworkPropertyMetadata(null)
     );
+
+    public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(
+        nameof(SelectedItem), 
+        typeof(object), 
+        typeof(ImagesControlModule),
+        (PropertyMetadata) new FrameworkPropertyMetadata((object)null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, new PropertyChangedCallback(ImagesControlModule.OnSelectedItemChanged)));
+
+    public object SelectedItem
+    {
+        get => this.GetValue(ImagesControlModule.SelectedItemProperty);
+        set => this.SetValue(ImagesControlModule.SelectedItemProperty, value);
+    }
+
+    private static void OnSelectedItemChanged(
+      DependencyObject d,
+      DependencyPropertyChangedEventArgs e)
+    {
+        if (!(d is ImagesControlModule controlDocumentation))
+            return;
+        controlDocumentation.SelectedItem = e.NewValue;
+        if (ImagesControlModule._page == null)
+            return;
+        (ImagesControlModule._page.DataContext as DashboardPage).ViewModel.Refresh((string)((ContentControl)e.NewValue).Content);
+    }
+
+
+    #region Toggle Button
+    
+    public static readonly DependencyProperty IsCheckedProperty = DependencyProperty.Register(
+    nameof(IsChecked),
+    typeof(object),
+    typeof(ImagesControlModule),
+    (PropertyMetadata)new FrameworkPropertyMetadata((object)null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, new PropertyChangedCallback(ImagesControlModule.OnIsCheckedChanged)));
+
+    public object IsChecked
+    {
+        get => this.GetValue(ImagesControlModule.IsCheckedProperty);
+        set => this.SetValue(ImagesControlModule.IsCheckedProperty, value);
+    }
+
+    private static void OnIsCheckedChanged(
+      DependencyObject d,
+      DependencyPropertyChangedEventArgs e)
+    {
+        if (!(d is ImagesControlModule controlDocumentation))
+            return;
+        //controlDocumentation.SelectedItem = e.NewValue;
+        if (ImagesControlModule._page == null)
+            return;
+
+        if((bool)e.NewValue)
+        {
+            (ImagesControlModule._page.DataContext as DashboardPage).ViewModel.OrderService.ShowImageViewer = false;
+            (ImagesControlModule._page.DataContext as DashboardPage).ViewModel.OrderService.ShowGridViewer = true;
+        }else
+        {
+            (ImagesControlModule._page.DataContext as DashboardPage).ViewModel.OrderService.ShowImageViewer = true;
+            (ImagesControlModule._page.DataContext as DashboardPage).ViewModel.OrderService.ShowGridViewer = false;
+        }
+    }
+    #endregion
+
 
     public static bool GetShow(FrameworkElement target) => (bool)target.GetValue(ShowProperty);
 
@@ -93,7 +156,7 @@ public  class ImagesControlModule : Control
         );
     }
 
-    private FrameworkElement? _page;
+    private static FrameworkElement? _page;
 
     private void OnLoaded()
     {

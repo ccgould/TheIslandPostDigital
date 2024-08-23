@@ -10,7 +10,7 @@ public interface IImageService
 
     void AddImage(ImageObj image);
     Task DeleteAllImages();
-    Task DeleteImage(ImageObj image);
+    Task<bool> DeleteImage(ImageObj image);
     void DeSelectAllImages();
     Task OpenImageDialogBrowser();
     void PrintAllImages();

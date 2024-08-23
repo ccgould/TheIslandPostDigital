@@ -12,12 +12,14 @@
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="OrdersPage"
-      x:Name="ordersPage">
+      x:Name="ordersPage"
+      ScrollViewer.CanContentScroll="False">
 
 
     <Page.Resources>
         <ResourceDictionary>
             <converters:MailBoolToColorConverter x:Key="MailBoolToColorConverter"/>
+            <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
         </ResourceDictionary>
     </Page.Resources>
 
@@ -31,8 +33,8 @@
             <Grid>                
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 
                 <Grid Grid.Column="1">
@@ -55,7 +57,7 @@
                         Margin="8,0,0,0"
                         VerticalAlignment="Center"
                         Foreground="White"
-                        Text="{Binding ElementName=CalendarDatePicker, Path=Date}" />
+                        Text="{Binding ElementName=CalendarDatePicker, Path=Date,StringFormat={}{0:MMMM dd yyyy}}" />
 
                     <ui:CalendarDatePicker
                         x:Name="CalendarDatePicker2"
@@ -70,7 +72,7 @@
                         Margin="8,0,0,0"
                         VerticalAlignment="Center"
                         Foreground="White"
-                        Text="{Binding ElementName=CalendarDatePicker2, Path=Date}" />
+                        Text="{Binding ElementName=CalendarDatePicker2, Path=Date,StringFormat={}{0:MMMM dd yyyy}}" />
 
                 </Grid>
                 
@@ -79,51 +81,67 @@
                     <TextBox Width="300" Margin="5,0,0,0" VerticalAlignment="Center" Text="{Binding ViewModel.SearchText, UpdateSourceTrigger=PropertyChanged}"/>
                 </StackPanel>
 
-                <ui:Button Content="Filter" Grid.Column="2" Margin="10,0" Command="{Binding ViewModel.SearchCommand}"/>
+                <ui:Button Grid.Column="2" Command="{Binding ViewModel.SearchCommand}" Margin="10,0">
+                    <ui:SymbolIcon Symbol="Search20" Filled="True" ToolTip="Search"/>
+                </ui:Button>
                 
             </Grid>
         </Border>
         <Grid Grid.Row="1" Margin="0,10,0,0">
-            <ui:ListView ItemsSource="{Binding ViewModel.OrderService.PurchaseHistory}">
-                <ui:ListView.ItemTemplate>
-                    <DataTemplate>
-                        <Grid Margin="10,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
+            <ui:ProgressRing Grid.RowSpan="3" IsIndeterminate="True" Visibility="{Binding ViewModel.IsBusy, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
+            <ScrollViewer>
+                <ui:ListView ItemsSource="{Binding ViewModel.OrderService.PurchaseHistory}">
+                    <ui:ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="10,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
 
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
 
-                            <Label Grid.Column="1" Content="{Binding DateTime}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.RowSpan="2"/>
-                            <Label Grid.Column="0" Content="{Binding Name}" FontSize="150" FontWeight="Bold"/>
-                            <ui:Button Grid.Column="2" Content="Send Email" Margin="30,10,10,10" VerticalAlignment="Center" Grid.RowSpan="2" Command="{Binding ElementName=ordersPage, Path=ViewModel.SendEmailCommand}" CommandParameter="{Binding .}"/>
-                            <ui:Button Grid.Column="3" Content="View Order" Margin="0,10,10,10" VerticalAlignment="Center" Grid.RowSpan="2" Command="{Binding ElementName=ordersPage, Path=ViewModel.ViewOrderCommand}" CommandParameter="{Binding .}"/>
+                                <!--<Label Grid.Column="1" Content="{Binding Date}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.RowSpan="2"/>-->
+                                <Label Grid.Column="0" Content="{Binding Name}" FontSize="150" FontWeight="Bold"/>
+                                <ui:Button Grid.Column="2" Content="Send Email" Margin="30,10,10,10" VerticalAlignment="Center" Grid.RowSpan="2" Command="{Binding ElementName=ordersPage, Path=ViewModel.SendEmailCommand}" CommandParameter="{Binding .}" IsEnabled="{Binding IsFinalized, Converter={StaticResource InverseBooleanConverter}}"/>
+                                <ui:Button Grid.Column="3" Content="View Order" Margin="0,10,10,10" VerticalAlignment="Center" Grid.RowSpan="2" Command="{Binding ElementName=ordersPage, Path=ViewModel.OpenHistoryCommand}" CommandParameter="{Binding .}"/>
 
-                            <StackPanel Orientation="Horizontal" Grid.ColumnSpan="3" Grid.Row="1">
-                                <StackPanel Orientation="Horizontal" Grid.Row="1" >
-                                    <ui:SymbolIcon Symbol="Image16" Margin="10,0"/>
-                                    <Label Grid.Column="1" Content="{Binding ApprovedImagesCount}" VerticalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" Grid.ColumnSpan="3" Grid.Row="1">
+                                    <StackPanel Orientation="Horizontal" Grid.Row="1" >
+                                        <ui:SymbolIcon Symbol="Image16" Margin="10,0"/>
+                                        <Label Grid.Column="1" Content="{Binding ApprovedImagesCount}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+
+                                    <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="3" Margin="10,0">
+                                        <ui:SymbolIcon Symbol="Print16"  Margin="10,0"/>
+                                        <Label Grid.Column="1" Content="{Binding ApprovedPrintsCount}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+
+                                    <ui:SymbolIcon Symbol="Mail24" Margin="10,0" Foreground="{Binding IsFinalized, Converter={StaticResource MailBoolToColorConverter}, FallbackValue=Red}"/>
+
+                                    <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="3" Margin="10,0">
+                                        <ui:SymbolIcon Symbol="Link16"  Margin="10,0"/>
+                                        <Label Grid.Column="1" Content="{Binding Email}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+
+                                    <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="3" Margin="10,0">
+                                        <ui:SymbolIcon Symbol="CalendarArrowCounterclockwise20"  Margin="10,0" Foreground="Cyan"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding Date,StringFormat={}{0:MMMM dd yyyy '@' hh:mm tt}}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+
                                 </StackPanel>
 
-                                <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="3" Margin="10,0">
-                                    <ui:SymbolIcon Symbol="Print16"  Margin="10,0"/>
-                                    <Label Grid.Column="1" Content="{Binding ApprovedPrintsCount}" VerticalAlignment="Center"/>
-                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ui:ListView.ItemTemplate>
+                </ui:ListView>
 
-                                <ui:SymbolIcon Symbol="Mail24" Margin="10,0" Foreground="{Binding IsFinalized, Converter={StaticResource MailBoolToColorConverter}, FallbackValue=Red}"/>
-
-                            </StackPanel>
-
-                        </Grid>
-                    </DataTemplate>
-                </ui:ListView.ItemTemplate>
-            </ui:ListView>
+            </ScrollViewer>
         </Grid>
     </Grid>
 </Page>

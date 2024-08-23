@@ -91,6 +91,17 @@
                     <ui:Button x:Name="pendingBrowseBtn" Grid.Column="2" Content="Browse" Click="pendingBrowseBtn_Click"/>
                 </Grid>
 
+                <Grid Margin="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Backup Directory:" VerticalAlignment="Center" Foreground="White"/>
+                    <TextBox x:Name="backupDirTxtB" Grid.Column="1" IsReadOnly="True" Margin="10,0,10,0" Text="{Binding  BackupDirectory}"/>
+                    <ui:Button x:Name="backupBrowseBtn" Grid.Column="2" Content="Browse" Click="backupBrowseBtn_Click"/>
+                </Grid>
+
             </StackPanel>
         </ui:CardExpander>
 
@@ -289,8 +300,102 @@
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
+                    <TextBlock Text="Email Timeout (In Seconds):" VerticalAlignment="Center" Foreground="White"/>
+                    <ui:NumberBox Grid.Column="1" Margin="10,0,10,0" Value="{Binding EmailTimeout, UpdateSourceTrigger=PropertyChanged}"/>
+                </Grid>
+
+                <Grid Margin="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
                     <TextBlock Text="Enable SSL:" VerticalAlignment="Center" Foreground="White"/>
                     <CheckBox Grid.Column="1"  Margin="10,0,10,0" IsChecked="{Binding EnableSSL}" HorizontalAlignment="Right"/>
+                </Grid>
+
+            </StackPanel>
+        </ui:CardExpander>
+
+        <ui:CardExpander ContentPadding="0">
+            <ui:CardExpander.Icon>
+                <ui:SymbolIcon Filled="True" Symbol="ServerSurfaceMultiple16"/>
+            </ui:CardExpander.Icon>
+            <ui:CardExpander.Header>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ui:TextBlock
+                Grid.Row="0"
+                Grid.Column="0"
+                FontTypography="Body"
+                Text="MySql Server" />
+                    <ui:TextBlock
+                Grid.Row="1"
+                Grid.Column="0"
+                Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}"
+                Text="Settings for mysql data transfer." />
+                    <TextBlock
+                Grid.Row="0"
+                Grid.RowSpan="2"
+                Grid.Column="1"
+                Margin="0,0,16,0"
+                VerticalAlignment="Center"
+                Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}"
+                Text="{Binding ViewModel.AppVersion, Mode=OneWay}" />
+                </Grid>
+            </ui:CardExpander.Header>
+            <StackPanel>
+
+                <Grid Margin="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Username:" Foreground="White" VerticalAlignment="Center"/>
+                    <TextBox Grid.Column="1" Margin="10,0,10,0" Text="{Binding MySqlUsername, UpdateSourceTrigger=PropertyChanged}"/>
+                </Grid>
+
+                <Grid Margin="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Database Name:" VerticalAlignment="Center" Foreground="White"/>
+                    <TextBox Grid.Column="1" Margin="10,0,10,0" Text="{Binding MysqlDatabaseName, UpdateSourceTrigger=PropertyChanged}"/>
+                </Grid>
+
+
+                <Grid Margin="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Datasource:" VerticalAlignment="Center" Foreground="White"/>
+                    <TextBox Grid.Column="1" Margin="10,0,10,0" Text="{Binding MysqlDatasource, UpdateSourceTrigger=PropertyChanged}"/>
+                </Grid>
+
+                <Grid Margin="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Password:" Foreground="White" VerticalAlignment="Center"/>
+                    <ui:PasswordBox x:Name="mysqlPasswordBx" Grid.Column="1" Margin="10,0,10,0" Text="{Binding MysqlPassword, UpdateSourceTrigger=PropertyChanged}"/>
+                </Grid>
+
+                <Grid Margin="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Port Number:" VerticalAlignment="Center" Foreground="White"/>
+                    <ui:NumberBox Grid.Column="1" Margin="10,0,10,0" Text="{Binding MysqlPortNumber, UpdateSourceTrigger=PropertyChanged}"/>
                 </Grid>
 
             </StackPanel>
@@ -305,7 +410,7 @@
 
             <TextBlock Text="Image Quality:" FontSize="20" FontWeight="Bold" Foreground="White"/>
 
-            <Slider Grid.Column="1" TickPlacement="Both" TickFrequency="5" IsSnapToTickEnabled="True" Value="{Binding ImageQuality}" Minimum="0" Maximum="100" />
+            <Slider Grid.Column="1" TickPlacement="Both" TickFrequency="5" IsSnapToTickEnabled="True" Value="{Binding ImageQuality, UpdateSourceTrigger=PropertyChanged}" ValueChanged="Slider_ValueChanged" Minimum="0" Maximum="100" />
 
             <StackPanel  Grid.Column="2" VerticalAlignment="Center" Margin="20,0,10,0">
                 <TextBlock Text="Output:" Foreground="White"/>

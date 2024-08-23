@@ -31,7 +31,7 @@ public partial class MainWindowViewModel : ObservableObject
 
     private void InitializeViewModel()
     {
-        ApplicationTitle = "WPF UI - MVVM Demo";
+        ApplicationTitle = "Island Post Digitial - Photography Depmartment";
 
         NavigationItems = new ObservableCollection<object>
         {
@@ -39,20 +39,51 @@ public partial class MainWindowViewModel : ObservableObject
             {
                 Content = "Home",
                 Icon = new SymbolIcon { Symbol = SymbolRegular.Home24 },
-                TargetPageType = typeof(Views.Pages.DashboardPage)
+                TargetPageType = typeof(Views.Pages.DashboardPage),
+                IsTabStop = false
             },
             new NavigationViewItem()
             {
                 Content = "Orders",
                 Icon = new SymbolIcon { Symbol = SymbolRegular.DataHistogram24 },
-                TargetPageType = typeof(Views.Pages.OrdersPage)
+                TargetPageType = typeof(Views.Pages.OrdersPage),
+                IsTabStop = false
             }
             ,
             new NavigationViewItem()
             {
                 Content = "Pending Orders",
                 Icon = new SymbolIcon { Symbol = SymbolRegular.Clock24 },
-                TargetPageType = typeof(Views.Pages.PendingOrdersPage)
+                TargetPageType = typeof(Views.Pages.PendingOrdersPage),
+                IsTabStop = false
+            },
+
+            new NavigationViewItem()
+            {
+                Content = "Backup",
+                Icon = new SymbolIcon { Symbol = SymbolRegular.Server16 },
+                TargetPageType = typeof(Views.Pages.BackupPage),
+                IsTabStop = false
+            },
+
+            new NavigationViewItem()
+            {
+                Content = "History",
+                Icon = new SymbolIcon { Symbol = SymbolRegular.Clock24 },
+                TargetPageType = typeof(Views.Pages.OrderHistoryEditorPage),
+                Visibility = System.Windows.Visibility.Collapsed,
+                IsTabStop = false
+
+            },
+
+            new NavigationViewItem()
+            {
+                Content = "Complete Order",
+                Icon = new SymbolIcon { Symbol = SymbolRegular.Cart24 },
+                TargetPageType = typeof(Views.Pages.CompleteOrderPage),
+                Visibility = System.Windows.Visibility.Collapsed,
+                IsTabStop = false
+
             }
         };
 
@@ -62,7 +93,8 @@ public partial class MainWindowViewModel : ObservableObject
             {
                 Content = "Settings",
                 Icon = new SymbolIcon { Symbol = SymbolRegular.Settings24 },
-                TargetPageType = typeof(Views.Pages.SettingsPage)
+                TargetPageType = typeof(Views.Pages.SettingsPage),
+                IsTabStop = false
             }
         };
 

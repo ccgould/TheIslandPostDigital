@@ -9,4 +9,7 @@ public partial class Employee : ObservableObject
     [ObservableProperty] private string lastName;
     [ObservableProperty] private bool isTerminated;
     [ObservableProperty] private int pin;
+    private string fullName;
+
+    public string FullName { get => $"{FirstName} {LastName}"; }
 }

@@ -138,13 +138,17 @@ public class FileService : IFileService
         return true;
     }
 
-    public async Task Copy(List<Tuple<string, string>> file)
+    public async Task Copy(List<Tuple<string, string>> file,bool moveToPrinterDir = true,Action<string> callBack = null)
     {
         await Copier.CopyFiles(file, (prog, fileName) =>
         {
-            var fileNameWEx = Path.GetFileName(fileName);
-            var result = Path.Combine(settings.PrinterDirectory, fileNameWEx);
-            File.Move(fileName, result, true);
+            callBack?.Invoke(fileName);
+            if(moveToPrinterDir)
+            {
+                var fileNameWEx = Path.GetFileName(fileName);
+                var result = Path.Combine(settings.PrinterDirectory, fileNameWEx);
+                File.Move(fileName, result, true);
+            }
         });
     }
 
@@ -210,7 +214,49 @@ public class FileService : IFileService
         }
         catch (Exception ex)
         {
-            messageService.ShowErrorMessage("Error Occured!", ex.Message, ex.StackTrace, "");
+            messageService.ShowErrorMessage("Error Occured!", ex.Message, ex.StackTrace, "65a519ae-d7d8-45d2-aece-3ffd0251d873");
+        }
+    }
+
+    public void Purge(Order order)
+    {
+        try
+        {
+            if(Directory.Exists(settings.InputDirectory))
+            {
+                System.IO.DirectoryInfo di = new DirectoryInfo(settings.InputDirectory);
+
+
+                foreach (FileInfo file in di.GetFiles())
+                {
+                    if(order.CurrentImages.Any(x=>x.ImageUrl == file.FullName))
+                    {
+                        file.Delete();
+                    }
+                }
+                foreach (DirectoryInfo dir in di.GetDirectories())
+                {
+                    dir.Delete(true);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            messageService.ShowErrorMessage("Error Occured!", ex.Message, ex.StackTrace, "c02511ad-1db1-4bbb-9057-d70c4fc36917");
+        }
+    }
+
+    public void Copy(string imageUrl, string newFile)
+    {
+        try
+        {
+            File.Copy(imageUrl, newFile);
+
+        }
+        catch (Exception ex)
+        {
+            messageService.ShowErrorMessage("Error Occured!", ex.Message, ex.StackTrace, "54e626ff-d252-4b45-88e7-7fc0d532c1dc");
+
         }
     }
 }

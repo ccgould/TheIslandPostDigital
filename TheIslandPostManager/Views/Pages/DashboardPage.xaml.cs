@@ -19,21 +19,6 @@ public partial class DashboardPage : INavigableView<DashboardViewModel>
         dataPage.Focus();
     }
 
-    //private void ListView_PreviewKeyDown(object sender, KeyEventArgs e)
-    //{
-    //    switch (e.Key)
-    //    {
-    //        case Key.Left:
-    //        case Key.Right:
-    //        case Key.Up:
-    //        case Key.Down:
-    //            e.Handled = true;
-    //            break;
-    //        default:
-    //            break;
-    //    }
-    //}
-
     private void txtNum_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
     {
 
