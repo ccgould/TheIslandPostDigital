@@ -42,6 +42,9 @@ public partial class Order : ObservableObject
     [ObservableProperty] private int maybeCount;
     [ObservableProperty] private BitmapImage thumbnail;
 
+    private int printCount;
+
+
 
     private string _orderFilter = "All";
     internal object EmployeeID;

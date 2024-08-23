@@ -6,10 +6,19 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <AssemblyVersion>1.0.879.0</AssemblyVersion>
-    <FileVersion>1.0.879.0</FileVersion>
+    <AssemblyVersion>1.0.894.0</AssemblyVersion>
+    <FileVersion>1.0.894.0</FileVersion>
 	<PreserveCompilationContext>true</PreserveCompilationContext>
 	<ApplicationIcon>logo.ico</ApplicationIcon>
+	  <!-- only accepts Major.Minor.Patch.Revision -->
+	  <AssemblyTitle>My Best App</AssemblyTitle>
+	  <Description>My app is cool (not required)</Description>
+	  <Company>My Company Name (required unless you set the IAssemblyAccessor save path yourself)</Company>
+	  <Product>My Product (required unless you set the IAssemblyAccessor save path yourself; set to product name e.g. MyBestApp)</Product>
+	  <Copyright>2024 MyCompanyName</Copyright>
+
+	  <Version>1.0.2-beta1</Version>
+
   </PropertyGroup>
 
   <ItemGroup>

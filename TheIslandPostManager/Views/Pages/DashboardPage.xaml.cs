@@ -54,6 +54,10 @@ public partial class DashboardPage : INavigableView<DashboardViewModel>
                 ViewModel.SelectAsMaybeClick(ViewModel.OrderService.CurrentOrder.CurrentImage);
                 e.Handled = true;
                 break;
+            case Key.P:
+                ViewModel.PrintImageClick(ViewModel.OrderService.CurrentOrder.CurrentImage);
+                e.Handled = true;
+                break;
             default:
                 break;
         }

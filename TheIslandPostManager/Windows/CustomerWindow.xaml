@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:local="clr-namespace:TheIslandPostManager.Windows"
         xmlns:converters="clr-namespace:TheIslandPostManager.Converters"
         xmlns:model="clr-namespace:TheIslandPostManager.Models"
@@ -62,20 +63,21 @@
 
 
             <!--Selection Amounts-->
-            
-            <Border Grid.ColumnSpan="3" HorizontalAlignment="Right" Width="150" CornerRadius="8" Margin="0,0,10,0">
-                <StackPanel Orientation="Horizontal">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,10,0">
-                        <Image Grid.RowSpan="2" Grid.ColumnSpan="2" Source="/Assets/correct.png" Height="30" Width="30" Margin="0,0,10,0"/>
-                        <TextBlock Text="{Binding OrderService.CurrentOrder.ApprovedImagesCount}" FontWeight="Bold" FontSize="30" VerticalAlignment="Center"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
-                        <Image Grid.RowSpan="2" Grid.ColumnSpan="2" Source="/Assets/pending.png" Height="30" Width="30" Margin="0,0,10,0"/>
-                        <TextBlock Text="{Binding OrderService.CurrentOrder.MaybeCount}" FontWeight="Bold" FontSize="30" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </StackPanel>
-            </Border>
 
+            <StackPanel Orientation="Horizontal" Grid.ColumnSpan="3" HorizontalAlignment="Right" Margin="10,0">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,10,0">
+                    <Image Source="/Assets/correct.png" Height="30" Width="30" Margin="0,0,10,0"/>
+                    <TextBlock Text="{Binding OrderService.CurrentOrder.ApprovedImagesCount}" FontWeight="Bold" FontSize="30" VerticalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <Image Source="/Assets/pending.png" Height="30" Width="30" Margin="0,0,10,0"/>
+                    <TextBlock Text="{Binding OrderService.CurrentOrder.MaybeCount}" FontWeight="Bold" FontSize="30" VerticalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <ui:SymbolIcon Symbol="Print48" FontSize="40" Filled="True" Margin="0,0,10,0"/>
+                    <TextBlock Text="{Binding OrderService.CurrentOrder.ApprovedPrintsCount}" FontWeight="Bold" FontSize="30" VerticalAlignment="Center"/>
+                </StackPanel>
+            </StackPanel>
             <!--Image Details-->
             <StackPanel  Grid.Row="0" HorizontalAlignment="Center" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="10">
                 <TextBlock  Text="{Binding OrderService.CurrentOrder.CurrentImage.Index, StringFormat={}({0}) - }" FontWeight="Bold"  HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="White"/>
@@ -99,66 +101,80 @@
                     Command="{Binding NextPhotoCommand}" />
                 </model:ZoomBorder.InputBindings>
                 <Grid>
-                    <Image Source="{Binding OrderService.CurrentOrder.CurrentImage.HDImage}" RenderOptions.BitmapScalingMode="HighQuality" />
-                    <Grid Opacity=".8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="100"/>
-                        </Grid.ColumnDefinitions>
 
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Image Grid.Column="1" x:Name="bounding" Source="{Binding OrderService.CurrentOrder.CurrentImage.HDImage}" RenderOptions.BitmapScalingMode="HighQuality" />
+                    <Border Grid.Column="1" Opacity=".2">
+                        <Image Source="/Assets/islandPostLogo.png" Width="{Binding ActualWidth, ElementName=bounding}"/>
+                    </Border>
+
+                    <Grid Grid.Column="1">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="100"/>
                             <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
+                        
+                        <Grid Opacity=".8" Grid.Row="0" Grid.RowSpan="2">
+                            <Image Grid.RowSpan="2" Grid.ColumnSpan="2" Source="/Assets/correct.png" Visibility="{Binding OrderService.CurrentOrder.CurrentImage.IsSelected, Converter={StaticResource BoolToVis}, FallbackValue=Hidden}" Height="50" Width="50" />
+                            <Image Grid.RowSpan="2" Grid.ColumnSpan="2" Source="/Assets/pending.png" Visibility="{Binding OrderService.CurrentOrder.CurrentImage.IsPending, Converter={StaticResource BoolToVis}, FallbackValue=Hidden}" Height="50" Width="50"/>
+                        </Grid>
 
-                        <Image Grid.RowSpan="2" Grid.ColumnSpan="2" Source="/Assets/correct.png" Visibility="{Binding OrderService.CurrentOrder.CurrentImage.IsSelected, Converter={StaticResource BoolToVis}, FallbackValue=Hidden}" Height="50" Width="50" />
-                        <Image Grid.RowSpan="2" Grid.ColumnSpan="2" Source="/Assets/pending.png" Visibility="{Binding OrderService.CurrentOrder.CurrentImage.IsPending, Converter={StaticResource BoolToVis}, FallbackValue=Hidden}" Height="50" Width="50"/>
+                        <Border Grid.Row="1" Background="#010101" CornerRadius="10,10,0,0" Visibility="{Binding OrderService.CurrentOrder.CurrentImage.IsPrintable,Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}">
+                            <StackPanel  Orientation="Horizontal" HorizontalAlignment="Center">
+                                <ui:SymbolIcon Symbol="Print48" FontSize="60" Filled="True" Foreground="White" Opacity=".8"/>
+                                <TextBlock Text="{Binding OrderService.CurrentOrder.CurrentImage.PrintAmount}" HorizontalAlignment="Center" Foreground="White" VerticalAlignment="Center" FontSize="30"/>
+                            </StackPanel>
+                        </Border>
                     </Grid>
+                   
                 </Grid>
-
             </model:ZoomBorder>
 
 
             <ui:ListView Visibility="{Binding OrderService.ShowGridViewer, Converter={StaticResource BoolToVis}, FallbackValue=Hidden}" Grid.Column="1" Grid.Row="1" ItemsSource="{Binding OrderService.CurrentOrder.CurrentImages}" IsSynchronizedWithCurrentItem="True">
+                <i:Interaction.Behaviors>
+                    <local:ScrollToSelectedListBoxItemBehavior />
+                </i:Interaction.Behaviors>
                 <ui:ListView.ItemTemplate>
                     <DataTemplate>
-                        <Border Margin="10">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <Border Grid.Row="0" Margin="5" CornerRadius="8" Background="#272727" HorizontalAlignment="Center">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock  Text="{Binding Index, StringFormat={}({0}) - }" FontWeight="Bold"  HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="White"/>
-                                        <TextBlock  Text="{Binding Name}"  HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="White"/>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <!--Details-->
+                            <Border Grid.Row="0" Margin="5" CornerRadius="8" Background="#272727" HorizontalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock  Text="{Binding Index, StringFormat={}({0}) - }" FontWeight="Bold"  HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="White"/>
+                                    <TextBlock  Text="{Binding Name}"  HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="White"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!--Image-->
+                            <Grid Grid.Row="1">
+
+                                <Image x:Name="bounding2" Height="400" Source="{Binding LowImage}" RenderOptions.BitmapScalingMode="Fant"/>
+
+                                <Grid Grid.RowSpan="2" VerticalAlignment="Center">
+                                    <Image Grid.RowSpan="2" Grid.ColumnSpan="2" Source="/Assets/correct.png" Visibility="{Binding IsSelected, Converter={StaticResource BoolToVis}, FallbackValue=Hidden}" Height="50" Width="50" />
+                                    <Image Grid.RowSpan="2" Grid.ColumnSpan="2" Source="/Assets/pending.png" Visibility="{Binding IsPending, Converter={StaticResource BoolToVis}, FallbackValue=Hidden}" Height="50" Width="50"/>
+                                </Grid>
+
+                                <Border Grid.Row="1" Height="40" VerticalAlignment="Bottom" Width="{Binding ActualWidth, ElementName=bounding2}" Background="#010101" CornerRadius="10,10,0,0" Visibility="{Binding IsPrintable,Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}">
+                                    <StackPanel  Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <ui:SymbolIcon Symbol="Print48" FontSize="30" Filled="True" Foreground="White" Opacity=".8"/>
+                                        <TextBlock Text="{Binding PrintAmount}" HorizontalAlignment="Center" Foreground="White" VerticalAlignment="Center" FontSize="20"/>
                                     </StackPanel>
                                 </Border>
-
-                                <Border Grid.Row="1"  Width="400" Height="300" CornerRadius="5" Margin="5">
-                                    <Border.Background>
-                                        <ImageBrush ImageSource="{Binding LowImage}" Stretch="Uniform" RenderOptions.BitmapScalingMode="Fant"/>
-                                    </Border.Background>
-                                    <Grid Opacity=".8">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="100"/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="100"/>
-                                            <RowDefinition Height="*"/>
-                                        </Grid.RowDefinitions>
-
-                                        <Grid Height="100" Width="100" Grid.RowSpan="2" Grid.ColumnSpan="2" VerticalAlignment="Center">
-                                            <ui:SymbolIcon Symbol="Emoji48" Foreground="#00e200" Visibility="{Binding IsSelected, Converter={StaticResource BoolToVis}, FallbackValue=Hidden}" Filled="True"/>
-                                            <ui:SymbolIcon Symbol="EmojiSadSlight24" Foreground="#ffa500" Visibility="{Binding IsPending, Converter={StaticResource BoolToVis}, FallbackValue=Hidden}" Filled="True"/>
-                                        </Grid>
-                                    </Grid>
-                                </Border>
                             </Grid>
-                        </Border>
+                            
+                        </Grid>
                     </DataTemplate>
                 </ui:ListView.ItemTemplate>
                 <ui:ListView.ItemsPanel>

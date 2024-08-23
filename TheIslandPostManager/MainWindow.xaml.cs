@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using NetSparkleUpdater.SignatureVerifiers;
+using NetSparkleUpdater;
+using System.Windows;
 using TheIslandPostManager.Controls;
 using TheIslandPostManager.ViewModels;
 using TheIslandPostManager.Windows;
@@ -13,6 +15,7 @@ public partial class MainWindow : INavigationWindow
 {
     public MainWindowViewModel ViewModel { get; }
 
+    private SparkleUpdater _sparkle;
 
 
     public MainWindow(
@@ -23,9 +26,32 @@ public partial class MainWindow : INavigationWindow
         IContentDialogService contentDialogService
     )
     {
+        // set icon in project properties!
+        string manifestModuleName = System.Reflection.Assembly.GetEntryAssembly().ManifestModule.FullyQualifiedName;
+        var icon = System.Drawing.Icon.ExtractAssociatedIcon(manifestModuleName);
+
+
+        //ccgould.github.io/Data/appcast.xml
+        _sparkle = new SparkleUpdater("https://netsparkleupdater.github.io/NetSparkle/files/sample-app/appcast.xml", new DSAChecker(NetSparkleUpdater.Enums.SecurityMode.Strict))
+        {
+            UIFactory = new NetSparkleUpdater.UI.WPF.UIFactory(NetSparkleUpdater.UI.WPF.IconUtilities.ToImageSource(icon))
+            {
+                ProcessWindowAfterInit = (window, factory) =>
+                {
+                    // Example of setting font styles on a window after init: 
+                    TextBlock.SetFontStyle(window, FontStyles.Italic);
+                }
+            },
+            ShowsUIOnMainThread = false,
+            //RelaunchAfterUpdate = true,
+            //UseNotificationToast = true
+        };
+        // TLS 1.2 required by GitHub (https://developer.github.com/changes/2018-02-01-weak-crypto-removal-notice/)
+        _sparkle.SecurityProtocolType = System.Net.SecurityProtocolType.Tls12;
+        _sparkle.StartLoop(true, true);
         //imageControlModule. += ImageControlModule_myEvent;
 
-ViewModel = viewModel;
+        ViewModel = viewModel;
         DataContext = this;
 
         Wpf.Ui.Appearance.SystemThemeWatcher.Watch(this);
@@ -36,6 +62,11 @@ ViewModel = viewModel;
         navigationService.SetNavigationControl(RootNavigation);
         snackbarService.SetSnackbarPresenter(SnackbarPresenter);
         contentDialogService.SetContentPresenter(RootContentDialog);
+    }
+
+    private void ManualUpdateCheck_Click(object sender, RoutedEventArgs e)
+    {
+        _sparkle.CheckForUpdatesAtUserRequest();
     }
 
     private void ImageControlModule_myEvent(int someValue)

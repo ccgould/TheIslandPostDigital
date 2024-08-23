@@ -27,12 +27,17 @@
             Key="F"
             Command="{Binding ElementName=AutoSuggestBox, Path=FocusCommand}"
             Modifiers="Control" />
+        <KeyBinding
+            Key="P"
+            Command="{Binding ElementName=AutoSuggestBox, Path=FocusCommand}"
+            Modifiers="Control" />
     </ui:FluentWindow.InputBindings>
 
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <ui:TitleBar
@@ -42,7 +47,7 @@
             Icon="pack://application:,,,/Assets/applicationIcon-256.png"
 />
 
-           <ui:NavigationView
+        <ui:NavigationView
            IsTabStop="False"
             x:Name="RootNavigation"
             Grid.Row="1"
@@ -75,7 +80,7 @@
 
         <ContentPresenter x:Name="RootContentDialog" Grid.Row="1" />
 
-
+        <!--<Button Grid.Row="2"  Content="Test" Click="ManualUpdateCheck_Click"/>-->
 
     </Grid>
 

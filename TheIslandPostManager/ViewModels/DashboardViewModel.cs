@@ -122,7 +122,7 @@ public partial class DashboardViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void PrintImageClick(ImageObj image)
+    public void PrintImageClick(ImageObj image)
     {
         image.IsPrintable = !image.IsPrintable;
 
