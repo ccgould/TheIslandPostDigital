@@ -37,13 +37,13 @@
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Grid.Column="0" Text="Cashier:" VerticalAlignment="Center" Margin="10,0" Foreground="White"/>
-                    <ComboBox  IsTabStop="False" Grid.Column="1" SelectedIndex="{Binding OrderService.CurrentOrder.Employee.EmployeeID}"  x:Name="ClerkCmbox" ItemsSource="{Binding Employees}" DisplayMemberPath="FirstName" SelectedItem="{Binding OrderService.CurrentOrder.Employee,Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                    <ComboBox  IsTabStop="False" Grid.Column="1" SelectedIndex="{Binding OrderService.CurrentOrder.Employee.EmployeeID}"  x:Name="ClerkCmbox" ItemsSource="{Binding Employees}" DisplayMemberPath="FirstName" SelectedItem="{Binding Employee,Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                     </ComboBox>
                     <TextBlock Grid.Column="2" Text="Passenger Name:" VerticalAlignment="Center" Margin="10,0" Foreground="White"/>
-                    <ui:TextBox  IsTabStop="False" Grid.Column="3"  FontSize="14" x:Name="PassengerNameTxtb" Text="{Binding OrderService.CurrentOrder.Name, UpdateSourceTrigger=PropertyChanged}"/>
+                    <ui:TextBox  IsTabStop="True" Grid.Column="3"  FontSize="14" x:Name="PassengerNameTxtb" Text="{Binding OrderService.CurrentOrder.Name, UpdateSourceTrigger=PropertyChanged}"/>
 
                     <TextBlock Grid.Column="4" Text="Passenger Email:" VerticalAlignment="Center" Margin="10,0" Foreground="White"/>
-                    <ui:TextBox  IsTabStop="False" Grid.Column="5"  x:Name="PassengerEmailTxtb" Text="{Binding OrderService.CurrentOrder.Email, UpdateSourceTrigger=PropertyChanged}"/>
+                    <ui:TextBox  IsTabStop="True" Grid.Column="5"  x:Name="PassengerEmailTxtb" Text="{Binding OrderService.CurrentOrder.Email, UpdateSourceTrigger=PropertyChanged}"/>
 
                 </Grid>
             </Border>
@@ -150,10 +150,10 @@
                                             <TextBlock Text="{Binding Amount}" Grid.Column="1" Margin="20,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="White"/>
                                             <TextBlock Text="{Binding Description}" Grid.Column="2" Margin="20,0,0,0" VerticalAlignment="Center" Foreground="White"/>
                                             <TextBlock Text="{Binding TotalCost}" Grid.Column="3" VerticalAlignment="Center" Foreground="White"/>
-                                            <ui:Button Grid.Column="4" ToolTip="Change Quantity" Command="{Binding ViewModel.ChangeQuantityCommand, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Page}}" CommandParameter="{Binding .}" Margin="10,0" Foreground="White">
+                                            <ui:Button IsTabStop="False" Grid.Column="4" ToolTip="Change Quantity" Command="{Binding ViewModel.ChangeQuantityCommand, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Page}}" CommandParameter="{Binding .}" Margin="10,0" Foreground="White">
                                                 <ui:SymbolIcon Symbol="StoreMicrosoft16" FontSize="18"/>
                                             </ui:Button>
-                                            <ui:Button Grid.Column="5" ToolTip="Delete" Command="{Binding ViewModel.DeleteCommand, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Page}}" CommandParameter="{Binding .}" Appearance="Primary" Foreground="White">
+                                            <ui:Button IsTabStop="False" Grid.Column="5" ToolTip="Delete" Command="{Binding ViewModel.DeleteCommand, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Page}}" CommandParameter="{Binding .}" Appearance="Primary" Foreground="White">
                                                 <ui:SymbolIcon Symbol="Delete12" FontSize="18"/>
                                             </ui:Button>
                                         </Grid>
@@ -186,8 +186,9 @@
             </Grid>
 
             <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button Content="Complete Order" Background="Green" Foreground="White" Command="{Binding CompleteOrderCommand}" Margin="20" Width="200" Click="Button_Click"/>
-                <Button Content="Dashboard" Background="Orange" Foreground="White" Command="{Binding CancelOrderCommand}" Width="200"/>
+                <Button IsTabStop="False" Content="Complete Order" Background="Green" Foreground="White" Command="{Binding CompleteOrderCommand}" Width="200" Click="Button_Click"/>
+                <Button IsTabStop="False" Content="Dashboard" Background="Orange" Foreground="White" Command="{Binding CancelOrderCommand}" Margin="20" Width="200"/>
+                <Button IsTabStop="False" Content="Override" Background="Firebrick" Foreground="White" Command="{Binding OverrideCommand}" Width="200"/>
             </StackPanel>
 
         </Grid>

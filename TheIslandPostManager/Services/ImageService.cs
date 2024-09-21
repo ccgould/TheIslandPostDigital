@@ -124,6 +124,7 @@ public partial class ImageService : ObservableObject, IImageService
     {
         foreach (ImageObj image in GetCurrentOrder().CurrentImages)
         {
+            if (image.IsSelected) continue;
             image.IsSelected = true;
             orderService.AddImageToOrder(image);
         }
@@ -142,42 +143,25 @@ public partial class ImageService : ObservableObject, IImageService
     {
         foreach (ImageObj image in GetCurrentOrder().CurrentImages)
         {
+            if (image.IsPrintable) continue;
             image.IsPrintable = true;
             image.IsSelected = true;
             orderService.AddImageToOrderPrints(image);
         }
     }
 
-    public async Task DeleteAllImages()
+    public void DeleteAllImages()
     {
-        var uiMessageBox = new MessageBox
+        for (int i = GetCurrentOrder().CurrentImages.Count - 1; i >= 0; i--)
         {
-            Title = "Delete ImageObj?",
-            Content = "Are you sure you would like to remove all images from this collection?",
-            IsPrimaryButtonEnabled = true,
-            PrimaryButtonText = "Yes",
-            CloseButtonText = "No ",
-
-        };
-
-        var result = await uiMessageBox.ShowDialogAsync();
-
-        if (result == MessageBoxResult.Primary)
-        {
-            for (int i = GetCurrentOrder().CurrentImages.Count - 1; i >= 0; i--)
-            {
-                var image = GetCurrentOrder().CurrentImages[i];
-                image.HDImage = null;
-                image.LowImage = null;
-                File.Delete(GetCurrentOrder().CurrentImages[i].ImageUrl);
-                GetCurrentOrder().CurrentImages.Remove(GetCurrentOrder().CurrentImages[i]);
-                UpdateImagesIndex();
-            }
-            GC.Collect();
+            var image = GetCurrentOrder().CurrentImages[i];
+            image.HDImage = null;
+            image.LowImage = null;
+            File.Delete(GetCurrentOrder().CurrentImages[i].ImageUrl);
+            GetCurrentOrder().CurrentImages.Remove(GetCurrentOrder().CurrentImages[i]);
+            UpdateImagesIndex();
         }
-
-
-      //  OnImageCountUpdate?.Invoke();
+        GC.Collect();
     }
 
     public void UpdateImagesIndex()

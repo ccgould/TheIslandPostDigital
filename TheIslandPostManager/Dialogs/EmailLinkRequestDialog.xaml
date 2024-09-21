@@ -22,6 +22,6 @@
 
     <StackPanel>
         <TextBlock Text="Please provide a valid link (URL) to the photo(s)/video(s) to attach to the email" TextWrapping="Wrap" TextAlignment="Center"/>
-        <TextBox Margin="10" Text="{Binding ElementName=emailLinkDialog, Path=Link, UpdateSourceTrigger=PropertyChanged}"/>
+        <TextBox Margin="10" Text="{Binding ElementName=emailLinkDialog, Path=Link, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
     </StackPanel>
 </ui:ContentDialog>

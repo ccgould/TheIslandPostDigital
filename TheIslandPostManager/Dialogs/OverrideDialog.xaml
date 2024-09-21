@@ -1,0 +1,34 @@
+﻿<ui:ContentDialog x:Class="TheIslandPostManager.Dialogs.OverrideDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:TheIslandPostManager.Dialogs"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             mc:Ignorable="d" 
+             d:DesignHeight="50"
+             d:DesignWidth="400"
+             ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
+             ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+             IsPrimaryButtonEnabled="True"
+             PrimaryButtonText="OK"
+             CloseButtonText="CANCEL"
+             Title="Override Request"
+             x:Name="overrideDialog">
+
+    <ui:ContentDialog.Resources>
+        <Style BasedOn="{StaticResource {x:Type ui:ContentDialog}}" TargetType="{x:Type local:OverrideDialog}" />
+    </ui:ContentDialog.Resources>
+       
+    <StackPanel>
+        <TextBlock Margin="0,5" Text="Please provide a valid override pin." TextWrapping="Wrap" TextAlignment="Center"/>
+        <StackPanel Orientation="Vertical" Margin="0,10">
+            <TextBlock Text="Administrator:" VerticalAlignment="Center"/>
+            <ComboBox x:Name="ClerkCmbox" Margin="0,5" ItemsSource="{Binding ElementName=overrideDialog, Path=Admins, UpdateSourceTrigger=PropertyChanged}" DisplayMemberPath="FirstName" SelectedItem="{Binding ElementName=overrideDialog, Path=SelectedItem, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>
+        <StackPanel Orientation="Vertical" Margin="0,5">
+            <TextBlock Text="Password:" VerticalAlignment="Center"/>
+            <PasswordBox x:Name="passwordBox" Margin="0,5"/>
+        </StackPanel>
+    </StackPanel>
+</ui:ContentDialog>

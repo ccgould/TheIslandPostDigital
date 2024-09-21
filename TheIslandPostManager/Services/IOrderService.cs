@@ -13,12 +13,14 @@ public interface IOrderService
     Order CurrentHistoryOrder { get; set; }
 
     Order CurrentOrder { get; set; }
+    bool IsWatermarkVisible { get; set; }
     void AddImageToOrder(ImageObj image);
     void AddImageToOrderPrints(ImageObj image);
     void Cancel(Order order);
     Task CancelAll();
     Task CompleteOrderAsync();
     Task CreateOrder(bool copy = false);
+    void DeleteAllImages();
     void DeleteOrder(Order order);
     void DeleteOrder(string orderId);
     Task DeletePendingOrder(Order order);

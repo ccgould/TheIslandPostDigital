@@ -110,7 +110,6 @@ public partial class App
                     Timeout = settings.EmailTimeout * 1000
                 };
 
-
                 services.AddFluentEmail(settings.Email, settings.CompanyName)
                         .AddRazorRenderer()
                         .AddSmtpSender(smtp);

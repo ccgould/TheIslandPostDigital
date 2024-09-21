@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using MySqlX.XDevAPI.Common;
+using System;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -92,6 +93,12 @@ public partial class ImageObj : ObservableObject, IImage
         IsPending = image.IsPending;
         IsPrintable = image.IsPrintable;
         Index = image.Index;
+    }
+
+    internal void Restore(string path)
+    {
+        ImageUrl = path;
+        LoadImage(path);
     }
 
     public void LoadImage(string path)

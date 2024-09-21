@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xaml.Behaviors;
 using System.Windows.Controls;
 using System.Windows;
+using TheIslandPostManager.Models;
 
 namespace TheIslandPostManager.Windows;
 public class ScrollToSelectedListBoxItemBehavior : Behavior<ListBox>
@@ -31,7 +32,9 @@ public class ScrollToSelectedListBoxItemBehavior : Behavior<ListBox>
 
     private static void ScrollIntoFirstSelectedItem(object sender)
     {
-        if (!(sender is ListBox listBox))
+        var settings = App.AppConfig.GetSection("AppSettings") as AppSettings;
+
+        if (!(sender is ListBox listBox) || !settings.ScrollSync)
             return;
         var selectedItems = listBox.SelectedItems;
         if (selectedItems.Count > 0)

@@ -1,12 +1,13 @@
-﻿using Google.Protobuf.WellKnownTypes;
-using MySql.Data.MySqlClient;
+﻿using MySql.Data.MySqlClient;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.IO;
-using System.Reflection;
+using System.Text;
 using System.Windows;
-using System.Windows.Threading;
 using TheIslandPostManager.Models;
+using System.Security.Cryptography;
+
+
 
 namespace TheIslandPostManager.Services;
 internal class MySQLService: IMySQLService
@@ -122,8 +123,6 @@ internal class MySQLService: IMySQLService
          MySqlConnection connection = await OpenConnection();
 
         if (connection is null) return null;
-
-
         try
         {
             ObservableCollection<Order> returnThese = new ObservableCollection<Order>();
@@ -145,23 +144,18 @@ internal class MySQLService: IMySQLService
                             Date = reader.GetDateTime("date")
                         };
 
-                        Application.Current.Dispatcher.Invoke(new Action(() =>
-                        {
-                            returnThese.Add(slip);
-                        }));
+                        returnThese.Add(slip);
                     });
                 }
             }
 
             connection.Close();
 
-            await LoadImages(returnThese);
-
             return returnThese;
         }
         catch(Exception ex)
         {
-            await messageService.ShowErrorMessage("Error Remove Pendiong Order", ex.Message, ex.StackTrace, "524270c5-ec9d-4d65-ab2e-bf39d771484d");
+            await messageService.ShowErrorMessage("Error Retrieving Pending Order", ex.Message, ex.StackTrace, "524270c5-ec9d-4d65-ab2e-bf39d771484d");
         }
         finally
         {
@@ -196,7 +190,11 @@ internal class MySQLService: IMySQLService
         }
         finally
         {
-            await connection.CloseAsync();
+            if(connection is not null)
+            {
+                await connection.CloseAsync();
+
+            }
         }
 
         return new();
@@ -228,8 +226,11 @@ internal class MySQLService: IMySQLService
             {
                 while (await reader.ReadAsync())
                 {
+
+
                     Order slip = new Order(0)
                     {
+                        EmployeeID = reader.GetInt32("employeeid"),
                         CustomerID = reader.GetString("userID"),
                         Name = reader.GetString("name"),
                         Date = reader.GetDateTime("date"),
@@ -238,6 +239,7 @@ internal class MySQLService: IMySQLService
                         ApprovedImagesCount = reader.GetInt32("photoCount"),
                         ApprovedPrintsCount = reader.GetInt32("printCount"),
                         VideoCount = reader.GetInt32("videoCount"),
+                        RetailCount = reader.GetInt32("RetailCount"),
                         IsFinalized = reader.GetBoolean("hasEmailBeenSent"),
                         OrderPath = reader.IsDBNull("path") ? string.Empty : reader.GetString("path"),
                     };
@@ -254,7 +256,9 @@ internal class MySQLService: IMySQLService
                 }
             }
 
-            await LoadOrderImages(returnThese);
+            await LoadOrderPurchaseHistory(returnThese);
+
+            //await LoadOrderImages(returnThese);
 
             return returnThese;
         }
@@ -270,7 +274,59 @@ internal class MySQLService: IMySQLService
         return new();
     }
 
-    private async Task LoadImages(ObservableCollection<Order> orders)
+    public async Task<Tuple<ObservableCollection<ImageObj>, List<IImage>, List<IImage>>?> LoadImages(string customerID)
+    {
+        MySqlConnection connection = await OpenConnection();
+        var currentImages = new ObservableCollection<ImageObj>();
+        var approvedImages = new List<IImage>();
+        var approvedPrints = new List<IImage>();
+
+        try
+        {
+            MySqlCommand command = new MySqlCommand("SELECT * FROM ipd_pendingimages WHERE userID=@userID", connection);
+            command.Parameters.AddWithValue("@userID", customerID);
+            using (MySqlDataReader reader = command.ExecuteReader())
+            {
+                while (await reader.ReadAsync())
+                {
+                    var imagePath = reader.GetString("imageURL").Replace("\\\\", "\\");
+                    if (File.Exists(imagePath))
+                    {
+                        var image = new ImageObj(imagePath);
+                        image.IsPending = reader.GetBoolean("isPending");
+                        image.IsPrintable = reader.GetBoolean("isPrinting");
+                        image.IsSelected = reader.GetBoolean("isSelected");
+
+
+                        currentImages.Add(image);
+
+                        if (image.IsSelected)
+                        {
+                            approvedImages.Add(image);
+                        }
+
+                        if (image.IsPrintable)
+                        {
+                            approvedPrints.Add(image);
+                        }
+                    }
+                }
+
+                return new ( currentImages, approvedImages,approvedPrints );
+            }
+        }
+        catch(Exception ex)
+        {
+            await messageService.ShowErrorMessage("Error Loading Images", ex.Message, ex.StackTrace, "1efb9bcb-caa2-4627-b719-52bcf24ff823");
+            return null;
+        }
+        finally
+        {
+            connection?.Close();
+        }
+    }
+
+    private async Task LoadOrderPurchaseHistory(ObservableCollection<Order> orders)
     {
         MySqlConnection connection = await OpenConnection();
 
@@ -278,43 +334,48 @@ internal class MySQLService: IMySQLService
         {
             foreach (var order in orders)
             {
-                MySqlCommand command = new MySqlCommand("SELECT * FROM ipd_pendingimages WHERE userID=@userID", connection);
-                command.Parameters.AddWithValue("@userID", order.CustomerID);
-                using (MySqlDataReader reader = command.ExecuteReader())
+
+                foreach (var item in order.ApprovedImages)
                 {
-                    while (reader.Read())
+                    MySqlCommand command = new MySqlCommand("SELECT * FROM ipd_orderimages WHERE userID=@userID", connection);
+                    command.Parameters.AddWithValue("@userID", order.CustomerID);
+
+                    using (var reader = await command.ExecuteReaderAsync())
                     {
-                        var imagePath = reader.GetString("imageURL");
-                        if (File.Exists(imagePath))
+                        while (await reader.ReadAsync())
                         {
-                            var image = new ImageObj(imagePath);
-                            image.IsPending = reader.GetBoolean("isPending");
-                            image.IsPrintable = reader.GetBoolean("isPrinting");
-                            image.IsSelected = reader.GetBoolean("isSelected");
-
-                            Application.Current.Dispatcher.Invoke(new Action(() =>
-                            {
-                                order.CurrentImages.Add(image);
-
-                                if (image.IsSelected)
-                                {
-                                    order.ApprovedImages.Add(image);
-                                }
-
-                                if (image.IsPrintable)
-                                {
-                                    order.ApprovedPrints.Add(image);
-                                }
-                            }));
-
+                            var purchaseH = new PurchaseHistoryItem();
+                            purchaseH.PrintCount = reader.GetInt32("printCount");
+                            purchaseH.PhotoAccount = reader.GetInt32("photoCount");
+                            purchaseH.Description = "Photo";
+                            purchaseH.ImageLocation =  reader.GetString("imageURL").Replace("\\\\", "\\");
+                            order.PurchaseHistoryItems.Add(purchaseH);
                         }
                     }
                 }
-            }
+
+                if (order.RetailCount > 0)
+                {
+                    MySqlCommand command2 = new MySqlCommand("SELECT * FROM ipd_retailPurchases WHERE customerID=@userID", connection);
+                    command2.Parameters.AddWithValue("@userID", order.CustomerID);
+
+                    using (var reader = await command2.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            var purchaseH = new PurchaseHistoryItem();
+                            purchaseH.RetailCount = reader.GetInt32("amount");
+                            purchaseH.Description = reader.GetString("description");
+                            order.PurchaseHistoryItems.Add(purchaseH);
+                        }
+                    }
+                }
+
+;            }
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
-            await messageService.ShowErrorMessage("Error Loading Images", ex.Message, ex.StackTrace, "1efb9bcb-caa2-4627-b719-52bcf24ff823");
+            await messageService.ShowErrorMessage("Error Order History Items", ex.Message, ex.StackTrace, "");
         }
         finally
         {
@@ -382,12 +443,13 @@ internal class MySQLService: IMySQLService
 
         try
         {
-            MySqlCommand command = new MySqlCommand("INSERT INTO `ipd_db`.`ipd_orders` (`userID`,`employeeID`,`photoCount`,`videoCount`,`printCount`,`email`,`name`,`hasEmailBeenSent`,`date`,`time`,`path`,`downloadURL`,`saleAmount`) VALUES (@userID,@employeeID, @photoCount, @videoCount, @printCount, @email, @name,@hasEmailBeenSent,@date,@time,@path,@downloadURL,@saleAmount)", connection);
+            MySqlCommand command = new MySqlCommand("INSERT INTO `ipd_db`.`ipd_orders` (`userID`,`employeeID`,`photoCount`,`videoCount`,`printCount`,`retailCount`,`email`,`name`,`hasEmailBeenSent`,`date`,`time`,`path`,`downloadURL`,`saleAmount`) VALUES (@userID,@employeeID, @photoCount, @videoCount, @printCount,@retailCount, @email, @name,@hasEmailBeenSent,@date,@time,@path,@downloadURL,@saleAmount)", connection);
             command.Parameters.AddWithValue("@userID", order.CustomerID);
             command.Parameters.AddWithValue("@employeeID", order.EmployeeID);
             command.Parameters.AddWithValue("@photoCount", order.ApprovedImagesCount);
             command.Parameters.AddWithValue("@videoCount", order.VideoCount);
-            command.Parameters.AddWithValue("@printCount", order.ApprovedPrintsCount);
+            command.Parameters.AddWithValue("@printCount", order.PrintingCount);
+            command.Parameters.AddWithValue("@retailCount", order.RetailCount);
             command.Parameters.AddWithValue("@email", order.Email);
             command.Parameters.AddWithValue("@name", order.Name);
             command.Parameters.AddWithValue("@hasEmailBeenSent", order.IsFinalized);
@@ -414,6 +476,18 @@ internal class MySQLService: IMySQLService
                     command1.Parameters.AddWithValue("@height", 0);
                     command1.Parameters.AddWithValue("@width", 0);
                     command1.Parameters.AddWithValue("@printAmount", image.PrintAmount);
+                    command1.ExecuteNonQuery();
+                }
+            }
+
+            if(order.RetailCount > 0)
+            {
+                foreach (var cartItem in order.Cart)
+                {
+                    MySqlCommand command1 = new MySqlCommand("INSERT INTO `ipd_db`.`ipd_retailPurchases` (`customerID`, `description', `amount`) VALUES (@customerID, @description, @amount)", connection);
+                    command1.Parameters.AddWithValue("@customerID", order.CustomerID);
+                    command1.Parameters.AddWithValue("@description", cartItem.Description);
+                    command1.Parameters.AddWithValue("@amount", cartItem.Amount);
                     command1.ExecuteNonQuery();
                 }
             }
@@ -458,16 +532,23 @@ internal class MySQLService: IMySQLService
         }
     }
 
-    public async Task<ObservableCollection<Employee>> GetEmployees()
+    public async Task<ObservableCollection<Employee>> GetEmployees(bool onlyAdmins = false)
     {
         MySqlConnection connection = await OpenConnection();
-
 
         try
         {
             ObservableCollection<Employee> returnThese = new();
+            MySqlCommand command;
 
-            MySqlCommand command = new MySqlCommand("SELECT * FROM ipd_employees ORDER BY firstName ASC", connection);
+            if (onlyAdmins)
+            {
+                command = new MySqlCommand("SELECT * FROM ipd_employees WHERE isTerminated = 0 AND isAdmin = true ORDER BY firstName ASC", connection);
+            }
+            else
+            {
+                command = new MySqlCommand("SELECT * FROM ipd_employees WHERE isTerminated = 0 ORDER BY firstName ASC", connection);
+            }
 
             using (MySqlDataReader reader = command.ExecuteReader())
             {
@@ -478,8 +559,7 @@ internal class MySQLService: IMySQLService
                         EmployeeID = reader.GetInt32("employeeID"),
                         FirstName = reader.GetString("firstName"),
                         LastName = reader.GetString("lastName"),
-                        IsTerminated = reader.GetBoolean("isTerminated"),
-                        Pin = reader.GetInt32("pin"),
+                        IsTerminated = reader.GetBoolean("isTerminated"),   
                     };
 
                     returnThese.Add(employee);
@@ -501,17 +581,77 @@ internal class MySQLService: IMySQLService
 
         return new();
     }
+
+    public async Task<bool> ValidatePin(int id,string pin)
+    {
+        MySqlConnection connection = await OpenConnection();
+        bool result = false;
+        try
+        {
+            ObservableCollection<Employee> returnThese = new();
+
+            MySqlCommand command = new MySqlCommand("SELECT * FROM ipd_employees WHERE employeeID = @employeeID", connection);
+            command.Parameters.AddWithValue("@employeeID", id);
+
+            using (MySqlDataReader reader = command.ExecuteReader())
+            {
+                while (await reader.ReadAsync())
+                {
+                    Employee employee = new Employee()
+                    {
+                        FirstName = reader.GetString("firstName"),
+                        Pin = reader.GetString("pin"),
+                        Salt = reader.GetString("salt"),
+                    };
+
+                    result = SHA1(SHA1(pin + employee.Salt)).Equals(employee.Pin);
+                }
+            }
+
+            connection.Close();
+
+            return result;
+        }
+        catch (Exception ex)
+        {
+            await messageService.ShowErrorMessage("Error Getting Employees", ex.Message, ex.StackTrace, "9dd1c50f-52c8-4d20-a6b6-91adf9d79213");
+        }
+        finally
+        {
+            connection?.Close();
+        }
+        return false;
+    }
+
+    private string SHA1(string input)
+    {
+        byte[] hash;
+        using (var sha1 = new SHA1CryptoServiceProvider())
+        {
+            hash = sha1.ComputeHash(Encoding.Unicode.GetBytes(input));
+        }
+
+        var sb = new StringBuilder();
+        foreach (byte b in hash)
+        {
+            sb.AppendFormat("{0:x2}", b);
+        }
+
+        return sb.ToString();
+    }
 }
 
 public interface IMySQLService
 {
     Task AddCompletedOrder(Order currentOrder);
     Task AddPendingOrder(Order order);
-    Task<ObservableCollection<Employee>> GetEmployees();
+    Task<ObservableCollection<Employee>> GetEmployees(bool getAdminOnly = false);
     Task<ObservableCollection<Order>> GetPendingOrders();
     Task<ObservableCollection<Order>> GetPurchaseHistory(DateTime startTime, DateTime endTime, string searchText, string clerkName);
     Task<ObservableCollection<PurchaseItem>> GetStoreItems();
+    Task<Tuple<ObservableCollection<ImageObj>, List<IImage>, List<IImage>>?> LoadImages(string id);
     Task RemovePendingOrder(Order order);
     void SetConnectionString();
     Task UpdateHistoryOrder(Order order);
+    Task<bool> ValidatePin(int employeeID,string link);
 }

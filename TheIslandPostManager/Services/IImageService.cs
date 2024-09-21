@@ -9,7 +9,7 @@ public interface IImageService
     //ObservableCollection<Image> CurrentImages { get; set; }
 
     void AddImage(ImageObj image);
-    Task DeleteAllImages();
+    void DeleteAllImages();
     Task<bool> DeleteImage(ImageObj image);
     void DeSelectAllImages();
     Task OpenImageDialogBrowser();

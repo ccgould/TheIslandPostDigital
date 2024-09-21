@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using Wpf.Ui.Controls;
 using Wpf.Ui;
 using TheIslandPostManager.Services;
+using System.Reflection;
 
 namespace TheIslandPostManager.ViewModels;
 public partial class MainWindowViewModel : ObservableObject
@@ -31,7 +32,7 @@ public partial class MainWindowViewModel : ObservableObject
 
     private void InitializeViewModel()
     {
-        ApplicationTitle = "Island Post Digitial - Photography Depmartment";
+        ApplicationTitle = $"Island Post Digitial - Photography Depmartment V{Assembly.GetExecutingAssembly().GetName().Version}";
 
         NavigationItems = new ObservableCollection<object>
         {
@@ -47,9 +48,9 @@ public partial class MainWindowViewModel : ObservableObject
                 Content = "Orders",
                 Icon = new SymbolIcon { Symbol = SymbolRegular.DataHistogram24 },
                 TargetPageType = typeof(Views.Pages.OrdersPage),
-                IsTabStop = false
-            }
-            ,
+                IsTabStop = false,
+                
+            },
             new NavigationViewItem()
             {
                 Content = "Pending Orders",
@@ -86,6 +87,22 @@ public partial class MainWindowViewModel : ObservableObject
 
             }
         };
+
+
+        var f = new NavigationViewItem()
+        {
+            Content = "Retail",
+            Icon = new SymbolIcon { Symbol = SymbolRegular.BuildingRetail24 },
+            TargetPageType = typeof(Views.Pages.CompleteOrderPage),
+            IsTabStop = false
+        };
+
+        f.Loaded += (s, e) =>
+        {
+
+        };
+
+        NavigationItems.Insert(2, f);
 
         NavigationFooter = new ObservableCollection<object>
         {

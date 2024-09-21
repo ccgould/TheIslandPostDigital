@@ -51,9 +51,9 @@ public  class ImagesControlModule : Control
     
     public static readonly DependencyProperty IsCheckedProperty = DependencyProperty.Register(
     nameof(IsChecked),
-    typeof(object),
+    typeof(bool),
     typeof(ImagesControlModule),
-    (PropertyMetadata)new FrameworkPropertyMetadata((object)null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, new PropertyChangedCallback(ImagesControlModule.OnIsCheckedChanged)));
+    (PropertyMetadata)new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, new PropertyChangedCallback(ImagesControlModule.OnIsCheckedChanged)));
 
     public object IsChecked
     {
@@ -83,7 +83,32 @@ public  class ImagesControlModule : Control
     }
     #endregion
 
+    #region Toggle Button
 
+    public static readonly DependencyProperty IsWatermarkCheckedProperty = DependencyProperty.Register(
+    nameof(IsWatermarkChecked),
+    typeof(bool),
+    typeof(ImagesControlModule),
+    (PropertyMetadata)new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, new PropertyChangedCallback(ImagesControlModule.OnIsWatermarkCheckedChanged)));
+
+    public object IsWatermarkChecked
+    {
+        get => this.GetValue(ImagesControlModule.IsWatermarkCheckedProperty);
+        set => this.SetValue(ImagesControlModule.IsWatermarkCheckedProperty, value);
+    }
+
+    private static void OnIsWatermarkCheckedChanged(
+      DependencyObject d,
+      DependencyPropertyChangedEventArgs e)
+    {
+        if (!(d is ImagesControlModule controlDocumentation))
+            return;
+        //controlDocumentation.SelectedItem = e.NewValue;
+        if (ImagesControlModule._page == null)
+            return;
+        (ImagesControlModule._page.DataContext as DashboardPage).ViewModel.OrderService.IsWatermarkVisible = (bool)e.NewValue;
+    }
+    #endregion
     public static bool GetShow(FrameworkElement target) => (bool)target.GetValue(ShowProperty);
 
     public static void SetShow(FrameworkElement target, bool show) => target.SetValue(ShowProperty, show);
@@ -223,7 +248,7 @@ public  class ImagesControlModule : Control
                 viewModel.ImageService.PrintAllImages();
                 break;
             case "deleteAll":
-                await viewModel.ImageService.DeleteAllImages();
+                await viewModel.DeleteAllImages();
                 break;
             case "createOrder":
                 await viewModel.CreateOrder();

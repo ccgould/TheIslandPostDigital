@@ -5,6 +5,7 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:TheIslandPostManager.Views.Pages"
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      xmlns:windows="clr-namespace:TheIslandPostManager.Windows"
       xmlns:converters="clr-namespace:TheIslandPostManager.Converters"
       xmlns:model="clr-namespace:TheIslandPostManager.Models"
       xmlns:ie="http://schemas.microsoft.com/xaml/behaviors"
@@ -18,6 +19,7 @@
         <ResourceDictionary>
             <converters:BoolToColorConverter x:Key="BoolToColorConverter"/>
             <model:BindingProxy x:Key="Proxy" Data="{Binding}" />
+            <converters:MethodToValueConverter x:Key="MethodToValueConverter"/>
         </ResourceDictionary>
 
     </Page.Resources>
@@ -40,127 +42,12 @@
         <!--Image Viewer-->
         <Image Grid.Column="0" Source="{Binding ViewModel.OrderService.CurrentOrder.CurrentImage.HDImage}" RenderOptions.BitmapScalingMode="HighQuality" />
         
-        <!--Image View-->
-        <Grid Grid.Column="0" >
-            <ScrollViewer IsTabStop="False">
-                <ItemsControl IsTabStop="False" x:Name="ListViewProducts" ItemsSource="{Binding ViewModel.Service.Images}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Margin="10">
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="*"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
-                                    <Border Grid.Row="0" Margin="5" CornerRadius="8" Background="#272727" Width="150">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock  Text="{Binding Index, StringFormat={}({0}) - }" FontWeight="Bold"  HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="White"/>
-                                            <TextBlock  Text="{Binding Name}"  HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="White"/>
-                                        </StackPanel>
-                                    </Border>
-                                    <Border Grid.Row="1"  Width="400" Height="300" CornerRadius="5" Margin="5">
-                                        <Border.Background>
-                                            <ImageBrush ImageSource="{Binding Image}" Stretch="Uniform"/>
-                                        </Border.Background>
-                                        <Border.InputBindings>
-                                            <MouseBinding MouseAction="LeftClick" Command="{Binding ElementName=dataPage, Path=ViewModel.ImageClickCommand}" CommandParameter="{Binding .}"/>
-                                        </Border.InputBindings>
-                                        <Border.ContextMenu>
-                                            <ContextMenu Name="cm">
-                                                <MenuItem Header="Select Picture" IsChecked="{Binding IsSelected}" IsCheckable="True"/>
-                                                <MenuItem Header="Set As Printable" IsChecked="{Binding IsPrintable}" IsCheckable="True"/>
-                                                <MenuItem Header="Set As Maybe" IsChecked="{Binding IsPending}" IsCheckable="True"/>
-                                                <MenuItem Header="View Image"/>
-                                            </ContextMenu>
-                                        </Border.ContextMenu>
-                                        <Grid Opacity=".8">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="100"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="100"/>
-                                                <RowDefinition Height="*"/>
-                                            </Grid.RowDefinitions>
-
-                                            <StackPanel Grid.RowSpan="2" Grid.ColumnSpan="2" Orientation="Vertical" VerticalAlignment="Center">
-                                                <Grid>
-                                                    <Image  Source="/Assets/correct.png" Visibility="{Binding IsSelected, Converter={StaticResource BoolToVis}, FallbackValue=Hidden}" Height="50" Width="50" />
-                                                    <Image  Source="/Assets/pending.png" Visibility="{Binding IsPending, Converter={StaticResource BoolToVis}, FallbackValue=Hidden}" Height="50" Width="50"/>
-                                                </Grid>
-
-
-                                                <!--<ui:SymbolIcon Grid.Row="0" 
-                                                           Grid.Column="1" 
-                                                           Symbol="Print48" 
-                                                           Foreground="#0d0d0d" 
-                                                           FontSize="50"
-                                                           Filled="True"
-                                                           Visibility="{Binding IsPrintable, Converter={StaticResource BoolToVis}, FallbackValue=Hidden}">
-                                                
-                                            </ui:SymbolIcon>-->
-
-                                            </StackPanel>
-
-                                        </Grid>
-
-                                    </Border>
-
-                                    <Border  Grid.Row="2" HorizontalAlignment="Center" Background="#272727" CornerRadius="8">
-                                        <StackPanel Orientation="Horizontal">
-                                            <ui:Button ToolTipService.ToolTip="Yes" Margin="5" Command="{Binding ElementName=dataPage, Path=ViewModel.SelectImageClickCommand}" CommandParameter="{Binding .}" >
-                                                <ui:SymbolIcon
-                                                Grid.Row="0"
-                                                FontSize="28"
-                                                Symbol="ThumbLike24"
-                                                Foreground="Green"
-                                                Filled="True"/>
-                                            </ui:Button>
-                                            <ui:Button ToolTipService.ToolTip="Maybe" Margin="5" Command="{Binding ElementName=dataPage, Path=ViewModel.SelectAsMaybeClickCommand}" CommandParameter="{Binding .}">
-                                                <ui:SymbolIcon
-                                                Grid.Row="0"
-                                                FontSize="28"
-                                                Symbol="ThumbDislike24"
-                                                Foreground="Orange"
-                                                Filled="True"/>
-                                            </ui:Button>
-                                            <ui:Button ToolTipService.ToolTip="Toggle as printing" Margin="5" Command="{Binding ElementName=dataPage, Path=ViewModel.PrintImageClickCommand}" CommandParameter="{Binding .}">
-                                                <ui:SymbolIcon
-                                                Grid.Row="0"
-                                                FontSize="28"
-                                                Symbol="Print16"
-                                                Foreground="{Binding IsPrintable, Converter={StaticResource BoolToColorConverter}, ConverterParameter=LightGreen;White;1, Mode=OneWay}"
-                                                Filled="True"/>
-                                            </ui:Button>
-                                            <ui:Button ToolTipService.ToolTip="Delete Image" Margin="5" Appearance="Primary" Command="{Binding ElementName=dataPage, Path=ViewModel.DeleteImageClickCommand}" CommandParameter="{Binding .}">
-                                                <ui:SymbolIcon
-                            Grid.Row="0"
-                            FontSize="28"
-                            Symbol="Delete16"
-                            Foreground="White"
-                            Filled="True"/>
-                                            </ui:Button>
-                                        </StackPanel>
-                                    </Border>
-
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
-            </ScrollViewer>
-        </Grid>
-
         <!--Images Grid-->
         <ScrollViewer Grid.Column="1">
             <ui:ListView  ItemsSource="{Binding ViewModel.OrderService.CurrentOrder.CurrentImages}" IsSynchronizedWithCurrentItem="True" PreviewKeyDown="ordersListBox_PreviewKeyDown">
+                <ie:Interaction.Behaviors>
+                    <windows:ScrollToSelectedListBoxItemBehavior />
+                </ie:Interaction.Behaviors>
                 <ui:ListView.ItemTemplate>
                     <DataTemplate>
                         <Border Margin="10">
@@ -210,7 +97,7 @@
 
                                 <Border  Grid.Row="2" HorizontalAlignment="Center" Background="#272727" CornerRadius="8">
                                     <StackPanel Orientation="Horizontal">
-                                        <ui:Button ToolTipService.ToolTip="Yes" Margin="5" Command="{Binding ElementName=dataPage, Path=ViewModel.SelectImageClickCommand}" CommandParameter="{Binding .}" >
+                                        <ui:Button IsTabStop="False" ToolTipService.ToolTip="Yes" Margin="5" Command="{Binding ElementName=dataPage, Path=ViewModel.SelectImageClickCommand}" CommandParameter="{Binding .}" >
                                             <ui:SymbolIcon
                                                 Grid.Row="0"
                                                 FontSize="28"
@@ -218,7 +105,7 @@
                                                 Foreground="Green"
                                                 Filled="True"/>
                                         </ui:Button>
-                                        <ui:Button ToolTipService.ToolTip="Maybe" Margin="5" Command="{Binding ElementName=dataPage, Path=ViewModel.SelectAsMaybeClickCommand}" CommandParameter="{Binding .}">
+                                        <ui:Button IsTabStop="False" ToolTipService.ToolTip="Maybe" Margin="5" Command="{Binding ElementName=dataPage, Path=ViewModel.SelectAsMaybeClickCommand}" CommandParameter="{Binding .}">
                                             <ui:SymbolIcon
                                                 Grid.Row="0"
                                                 FontSize="28"
@@ -226,7 +113,7 @@
                                                 Foreground="Orange"
                                                 Filled="True"/>
                                         </ui:Button>
-                                        <ui:Button ToolTipService.ToolTip="Toggle as printing" Margin="5" Command="{Binding ElementName=dataPage, Path=ViewModel.PrintImageClickCommand}" CommandParameter="{Binding .}">
+                                        <ui:Button IsTabStop="False" ToolTipService.ToolTip="Toggle as printing" Margin="5" Command="{Binding ElementName=dataPage, Path=ViewModel.PrintImageClickCommand}" CommandParameter="{Binding .}">
                                             <ui:SymbolIcon
                                                 Grid.Row="0"
                                                 FontSize="28"
@@ -234,7 +121,7 @@
                                                 Foreground="{Binding IsPrintable, Converter={StaticResource BoolToColorConverter}, ConverterParameter=LightGreen;White;1, Mode=OneWay}"
                                                 Filled="True"/>
                                         </ui:Button>
-                                        <ui:Button ToolTipService.ToolTip="Delete Image" Margin="5" Appearance="Primary" Command="{Binding ElementName=dataPage, Path=ViewModel.DeleteImageClickCommand}" CommandParameter="{Binding .}">
+                                        <ui:Button IsTabStop="False" ToolTipService.ToolTip="Delete Image" Margin="5" Appearance="Primary" Command="{Binding ElementName=dataPage, Path=ViewModel.DeleteImageClickCommand}" CommandParameter="{Binding .}">
                                             <ui:SymbolIcon
                             Grid.Row="0"
                             FontSize="28"
@@ -309,8 +196,11 @@
                                         </Grid.RowDefinitions>
 
                                         <TextBlock Text="{Binding Name}"/>
-                                        <TextBlock Text="{Binding ApprovedImagesCount,StringFormat='Images Selected: {0}'}" Grid.Row="1"/>
-
+                                        <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
+                                            <TextBlock Text="{Binding ApprovedImagesCount,StringFormat='Images Selected: {0}'}"/>
+                                            <TextBlock Text="{Binding PrintingCount,StringFormat='Prints Selected: {0}'}" Margin="10,0"/>
+                                            <TextBlock Text="{Binding MaybeCount,StringFormat='Maybe Selected: {0}'}"/>
+                                        </StackPanel>
                                     </Grid>
 
                                     <ui:Button IsTabStop="False" Margin="0,0,10,0"  ToolTip="Complete Order" Grid.Column="1" Command="{Binding ElementName=dataPage, Path=ViewModel.CompleteOrderCommand}" CommandParameter="{Binding .}">

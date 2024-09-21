@@ -75,7 +75,7 @@
                         Grid.Row="5"
                          Width="Auto" 
                          Foreground="White" 
-                         Text="{Binding OrderService.CurrentHistoryOrder.}" 
+                         Text="N/A" 
                          Margin="5"
                          IsReadOnly="True"/>
 
@@ -129,7 +129,7 @@
             <TextBlock Text="Approved Photos" Foreground="White"/>
             <Border Grid.Row="1"  CornerRadius="8" Margin="5">
                 <ScrollViewer>
-                    <ui:ListView  ItemsSource="{Binding OrderService.CurrentHistoryOrder.ApprovedImages}">
+                    <ui:ListView  ItemsSource="{Binding OrderService.CurrentHistoryOrder.PurchaseHistoryItems}">
                         <ui:ListView.ItemTemplate>
                             <DataTemplate DataType="{x:Type List}">
                                 <Grid>

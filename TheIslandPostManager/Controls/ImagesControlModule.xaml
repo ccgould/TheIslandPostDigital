@@ -70,11 +70,30 @@ xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                                 ToolTip="Delete All" >
                                 <ui:SymbolIcon Symbol="Delete12" FontSize="18"/>
                             </ui:Button>
-
+                            <ToggleButton 
+                                IsTabStop="False"
+                                Margin="0,0,5,0"
+                                Command="{Binding Path=TemplateButtonCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                                CommandParameter="gridViewToggle"
+                                ToolTip="Toggle Customer Grid View"
+                                IsChecked="{Binding Path=IsChecked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                <ui:SymbolIcon Symbol="Grid28" FontSize="18"/>
+                            </ToggleButton>
+                            <ToggleButton 
+                                IsTabStop="False"
+                                Margin="0,0,5,0"
+                                Command="{Binding Path=TemplateButtonCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                                CommandParameter="toggleWaterMark"
+                                ToolTip="Toggle Watermark"
+                                IsChecked="{Binding Path=IsWatermarkChecked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                                <ui:SymbolIcon Symbol="Water24" FontSize="18"/>
+                            </ToggleButton>
+                            
                             <Separator
                             Grid.Column="2"
                             Height="16"
                             Margin="4,0,4,0" />
+
                             <StackPanel Orientation="Horizontal">
                                 <Label Content="Filter" VerticalAlignment="Center"/>
                                 <ComboBox IsTabStop="False" x:Name="filterCombo" SelectedIndex="0" Margin="10" Width="150" SelectedItem="{Binding Path=SelectedItem, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
@@ -84,11 +103,7 @@ xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                                     <ComboBoxItem>Both</ComboBoxItem>
                                 </ComboBox>
                             </StackPanel>
-                            <StackPanel Orientation="Vertical" Margin="10,0">
-                                <TextBlock Text="Toggle Customer Grid View" HorizontalAlignment="Center" Margin="0,0,0,5"/>
-                                <ui:ToggleSwitch HorizontalAlignment="Center" OffContent="Grid View Off" OnContent="Grid View On"  x:Name="toggleGrid" IsChecked="{Binding Path=IsChecked, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"/>
-
-                            </StackPanel>
+                            
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal" Grid.Column="1">

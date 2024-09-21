@@ -21,6 +21,11 @@ public partial class CustomerWindowViewmodel : ObservableObject
         };
     }
 
+    public int GetPrintCount()
+    {
+        return orderService.CurrentOrder.ApprovedPrints.Sum(x => x.PrintAmount);
+    }
+
     [RelayCommand]
     private void PreviousPhoto()
     {

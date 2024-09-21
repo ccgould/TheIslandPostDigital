@@ -15,6 +15,7 @@ using TheIslandPostManager.Windows;
 using Wpf.Ui;
 using Wpf.Ui.Controls;
 using Wpf.Ui.Extensions;
+using MessageBox = Wpf.Ui.Controls.MessageBox;
 using Order = TheIslandPostManager.Models.Order;
 
 namespace TheIslandPostManager.ViewModels;
@@ -114,6 +115,27 @@ public partial class DashboardViewModel : ObservableObject
         }
     }
 
+    internal async Task DeleteAllImages()
+    {
+        var uiMessageBox = new MessageBox
+        {
+            Title = "Delete ImageObj?",
+            Content = "Are you sure you would like to remove all images from this collection?",
+            IsPrimaryButtonEnabled = true,
+            PrimaryButtonText = "Yes",
+            CloseButtonText = "No ",
+
+        };
+
+        var result = await uiMessageBox.ShowDialogAsync();
+
+        if (result == Wpf.Ui.Controls.MessageBoxResult.Primary)
+        {
+            OrderService.DeleteAllImages();
+            ImageService.DeleteAllImages();
+        }
+    }
+
     [RelayCommand]
     public void SelectAsMaybeClick(ImageObj image)
     {
@@ -124,23 +146,14 @@ public partial class DashboardViewModel : ObservableObject
     [RelayCommand]
     public void PrintImageClick(ImageObj image)
     {
-        image.IsPrintable = !image.IsPrintable;
-
-        if(image.IsPrintable)
-        {
-            OrderService.AddImageToOrderPrints(image);
-        }
-        else
-        {
-            OrderService.RemoveImageFromOrderPrints(image);
-
-        }
+        OrderService.AddImageToOrderPrints(image);
     }
 
     [RelayCommand]
     private void IncreasePrintCountClick(ImageObj image)
     {
         image.PrintAmount += 1;
+        OrderService.CurrentOrder.UpdateSelectionCounts();
     }
 
     [RelayCommand]
@@ -148,6 +161,7 @@ public partial class DashboardViewModel : ObservableObject
     {
         if (image.PrintAmount == 1) return;
         image.PrintAmount -= 1;
+        OrderService.CurrentOrder.UpdateSelectionCounts();
     }
 
     internal void OpenCustomerView()
@@ -157,6 +171,7 @@ public partial class DashboardViewModel : ObservableObject
         if (s.Length > 1)
         {
             var display = s.FirstOrDefault(x => x.Primary == false);
+
             if (display is not null)
             {
                 System.Drawing.Rectangle workingArea = display.WorkingArea;
@@ -177,18 +192,16 @@ public partial class DashboardViewModel : ObservableObject
             messageService.ShowSnackBarMessage("Customer View", $"Secondary Monitor Not Detected", ControlAppearance.Caution, SymbolRegular.Question48);
 
         }
-
-
     }
 
     [RelayCommand]
-    private async Task CompleteOrder(Order order)
+    private void CompleteOrder(Order order)
     {
-        if(order.ApprovedImagesCount <= 0)
-        {
-            messageService.ShowSnackBarMessage("Attention", "No images selected. Please select a photo before attempting to complete this order", ControlAppearance.Caution, SymbolRegular.Stop20);
-            return;
-        }
+        //if(order.ApprovedImagesCount <= 0)
+        //{
+        //    messageService.ShowSnackBarMessage("Attention", "No images selected. Please select a photo before attempting to complete this order", ControlAppearance.Caution, SymbolRegular.Stop20);
+        //    return;
+        //}
         OrderService.CurrentOrder = order;
         OrderService.CurrentOrder.IsCompleteingOrder = true;
 

@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using TheIslandPostManager.Models;
+using TheIslandPostManager.Services;
 using Wpf.Ui.Controls;
 
 namespace TheIslandPostManager.Dialogs;
@@ -31,9 +33,30 @@ public partial class EmailLinkRequestDialog : ContentDialog,INotifyPropertyChang
         }
     }
 
-    public EmailLinkRequestDialog(ContentPresenter contentPresenter) : base(contentPresenter)
+    private Order order;
+    private readonly IEmailService emailService;
+    private readonly IMySQLService mySQLService;
+
+    public Order Order
+    {
+        get
+        {
+            return order;
+        }
+
+        set
+        {
+            order = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public EmailLinkRequestDialog(ContentPresenter contentPresenter, IEmailService emailService, IMySQLService mySQLService, Order order) : base(contentPresenter)
     {
         InitializeComponent();
+        this.emailService = emailService;
+        this.mySQLService = mySQLService;
+        Order = order;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -47,8 +70,19 @@ public partial class EmailLinkRequestDialog : ContentDialog,INotifyPropertyChang
     }
 
 
-    protected override void OnButtonClick(ContentDialogButton button)
+    protected override async void OnButtonClick(ContentDialogButton button)
     {
+        //Order.DownloadURL = Link;
+
+        //if (await emailService.SendEmail(Order))
+        //{
+        //    await mySQLService.UpdateHistoryOrder(order);
+        //}
+        //else
+        //{
+
+        //}
+
         base.OnButtonClick(button);
     }
 }

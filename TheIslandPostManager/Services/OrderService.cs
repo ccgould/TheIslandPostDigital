@@ -26,6 +26,9 @@ public partial class OrderService : ObservableObject, IOrderService
     [ObservableProperty] private bool showGridViewer = false;
 
     private AppSettings? settings => App.AppConfig.GetSection("AppSettings") as AppSettings;
+
+    [ObservableProperty] private bool isWatermarkVisible = true;
+
     private readonly IMessageService messageService;
     private readonly IFileService fileService;
     private readonly IMySQLService mySQLService;
@@ -119,63 +122,67 @@ public partial class OrderService : ObservableObject, IOrderService
     public async Task CompleteOrderAsync()
      {
         IsBusy = true;
-                    
-        await Task.Run(() =>
+                 
+        if(CurrentOrder.HasImages())
         {
-
-            var outputLoc = CurrentOrder.GetOutputLocation();
-
-            if(Directory.Exists(outputLoc))
+            await Task.Run(() =>
             {
-                outputLoc = CurrentOrder.GetSubOutputLocation();
-            }
 
-            foreach (ImageObj image in CurrentOrder.CurrentImages)
-            {
-                if (image.IsSelected)
+                var outputLoc = CurrentOrder.GetOutputLocation();
+
+                if (Directory.Exists(outputLoc))
                 {
-                    //TODO Add Images TO mysql
+                    outputLoc = CurrentOrder.GetSubOutputLocation();
+                }
 
-                    fileService.CreateDirectory(_tempFolder);
-
-                    AddWaterMark(outputLoc, image.ImageUrl, async (outputFile, filename) =>
+                foreach (ImageObj image in CurrentOrder.CurrentImages)
+                {
+                    if (image.IsSelected)
                     {
-                        if (image.IsPrintable)
+                        //TODO Add Images TO mysql
+
+                        fileService.CreateDirectory(_tempFolder);
+
+                        AddWaterMark(outputLoc, image.ImageUrl, async (outputFile, filename) =>
                         {
-                            var files = new List<Tuple<string, string>>();
-
-
-                            for (int i = 0; i < image.PrintAmount; i++)
+                            if (image.IsPrintable)
                             {
-                                var wOutExt = Path.GetFileNameWithoutExtension(filename);
-                                var result = $"{wOutExt}_{i}.jpg";
-                                files.Add(new Tuple<string, string>(outputFile, Path.Combine(_tempFolder, result)));
+                                var files = new List<Tuple<string, string>>();
+
+
+                                for (int i = 0; i < image.PrintAmount; i++)
+                                {
+                                    var wOutExt = Path.GetFileNameWithoutExtension(filename);
+                                    var result = $"{wOutExt}_{i}.jpg";
+                                    files.Add(new Tuple<string, string>(outputFile, Path.Combine(_tempFolder, result)));
+                                }
+
+                                await fileService.Copy(files);
                             }
-
-                            await fileService.Copy(files);
-                        }
-                        image.ImageUrl = outputFile;
-                    });
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(CurrentOrder.Email))
-            {
-                var emails = CurrentOrder.Email.Split(',');
-
-                if (emails.Length > 1)
-                {
-                    for (int i = 1; i < emails.Length; i++)
-                    {
-                        CurrentOrder.CC.Add(new FluentEmail.Core.Models.Address(emails[i].Trim()));
+                            image.ImageUrl = outputFile;
+                        });
                     }
-
-                    CurrentOrder.Email = emails[0].Trim();
                 }
-            }
-        });
 
-        fileService.OpenLocation(CurrentOrder.GetOutputLocation());
+                if (!string.IsNullOrWhiteSpace(CurrentOrder.Email))
+                {
+                    var emails = CurrentOrder.Email.Split(',');
+
+                    if (emails.Length > 1)
+                    {
+                        for (int i = 1; i < emails.Length; i++)
+                        {
+                            CurrentOrder.CC.Add(new FluentEmail.Core.Models.Address(emails[i].Trim()));
+                        }
+
+                        CurrentOrder.Email = emails[0].Trim();
+                    }
+                }
+            });
+
+            fileService.OpenLocation(CurrentOrder.GetOutputLocation());
+
+        }
 
         await mySQLService.AddCompletedOrder(CurrentOrder);
 
@@ -369,16 +376,30 @@ public partial class OrderService : ObservableObject, IOrderService
     public async Task OpenOrderFromPending(Order order)
     {
         CreateOrder(order);
-        
-        foreach (var item in order.CurrentImages)
+
+        var result = await mySQLService.LoadImages(order.CustomerID);
+        if(result is not null)
         {
-            var newFile = Path.Combine(settings.InputDirectory, Path.GetFileName(item.ImageUrl)); 
-            await fileService.Move(new(item.ImageUrl, newFile));
-            item.ImageUrl = newFile;
+            order.ApprovedPrints = result.Item3;
+            order.ApprovedImages = result.Item2;
+            order.CurrentImages = result.Item1;
+            foreach (var item in order.CurrentImages)
+            {
+                var newFile = Path.Combine(settings.InputDirectory, Path.GetFileName(item.ImageUrl));
+                await fileService.Move(new(item.ImageUrl, newFile));
+                item.Restore(newFile);
+            }
+            order.LinkCollection();
+
+            PendingOrders.Remove(order);
+            fileService.DeleteDirectory(order.DownloadURL);
+            await mySQLService.RemovePendingOrder(order);
+
         }
-        PendingOrders.Remove(order);
-        fileService.DeleteDirectory(order.DownloadURL);
-        await mySQLService.RemovePendingOrder(order);
+        else
+        {
+            await messageService.ShowErrorMessage("Error", "Failed to load pending image");
+        }
     }
 
     public async Task DeletePendingOrder(Order order)
@@ -393,17 +414,19 @@ public partial class OrderService : ObservableObject, IOrderService
         }
     }
 
-    public async Task RestorePendingOrder(Order order)
-    {
-
-    }
-
     public void SetAsMaybe(ImageObj image)
     {
         image.IsPending = !image.IsPending;
         RemoveImageFromOrder(image);
     }
 
+    public void DeleteAllImages()
+    {
+        foreach (var item in CurrentOrder.CurrentImages)
+        {
+            RemoveImageFromOrder(item);
+        }
+    }
 }
 public class DirectoryInfoComparer : IEqualityComparer<DirectoryInfo>
 {

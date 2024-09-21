@@ -38,7 +38,7 @@ public partial class OrdersPageViewModel : ObservableObject
     private async Task SendEmail(Order order)
     {
 
-        var emailLinkDialog = new EmailLinkRequestDialog(contentDialogService.GetContentPresenter());
+        var emailLinkDialog = new EmailLinkRequestDialog(contentDialogService.GetContentPresenter(),emailService,mySQLService,order);
 
         var result = await emailLinkDialog.ShowAsync();
 
@@ -54,7 +54,7 @@ public partial class OrdersPageViewModel : ObservableObject
             {
 
             }
-        }        
+        }
     }
 
     [RelayCommand]

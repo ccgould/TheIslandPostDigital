@@ -1,36 +1,40 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using System.Windows.Controls;
 using TheIslandPostManager.Models;
 using TheIslandPostManager.Services;
 using Wpf.Ui;
 using Wpf.Ui.Controls;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace TheIslandPostManager.Dialogs;
 
 public partial class CompleteOrderDialogViewModel : ObservableObject
 {
     [ObservableProperty] private IOrderService orderService;
+    private readonly IMySQLService mySQLService;
     private readonly IMessageService messageService;
     private readonly INavigationService navigationService;
+    private readonly IContentDialogService contentDialogService;
     [ObservableProperty] private ObservableCollection<PurchaseItem> purchaseItems;
     [ObservableProperty] private ObservableCollection<Employee> employees;
     [ObservableProperty] private bool isFlyoutOpen;
     [ObservableProperty] private bool showImageCountOverMessage;
     [ObservableProperty] private bool showPrintCountOverMessage;
     [ObservableProperty] private int printCount;
+    [ObservableProperty] private Employee employee;
+    private bool _managerBypass;
 
-
-    public CompleteOrderDialogViewModel(IOrderService orderService, IMySQLService mySQLService, IMessageService messageService,INavigationService navigationService)
+    public CompleteOrderDialogViewModel(IOrderService orderService, IMySQLService mySQLService, IMessageService messageService,INavigationService navigationService, IContentDialogService contentDialogService)
     {
         Employees = mySQLService.GetEmployees().Result;
         PrintCount = orderService.CurrentOrder.ApprovedPrints.Sum(x => x.PrintAmount);
         this.orderService = orderService;
+        this.mySQLService = mySQLService;
         this.messageService = messageService;
         this.navigationService = navigationService;
-        PurchaseItems = mySQLService.GetStoreItems().Result;
+        this.contentDialogService = contentDialogService;
+        PurchaseItems = mySQLService.GetStoreItems()?.Result;
+        var pages = navigationService.GetNavigationControl();
 
         if (orderService.CurrentOrder.Cart.Any())
         {
@@ -57,8 +61,20 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
 
     internal async Task<bool> CheckConditons()
     {
+        if (_managerBypass)
+        {
+            _managerBypass = false;
+            return true;
+        }
+
         var imageCount = 0;
         var printCount = 0;
+
+        if(Employee is null)
+        {
+            await messageService.ShowMessage("Cashier Not Choosen", "Please select a cashier.", "OK", ControlAppearance.Primary, false);
+            return false;
+        }
 
         if (OrderService.CurrentOrder is null) return false;
 
@@ -85,8 +101,15 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
         //    return false;
         //}
 
+        var printSum = OrderService.CurrentOrder.ApprovedPrints.Sum(x => x.PrintAmount);
 
-        if (printCount < OrderService.CurrentOrder.ApprovedPrints.Sum(x => x.PrintAmount))
+        if (printCount < printSum)
+        {
+            await messageService.ShowMessage("Incorrect Amounts", $"Please check print count and try again");
+            return false;
+        }
+
+        if (printCount > printSum && printSum != 0)
         {
             await messageService.ShowMessage("Incorrect Amounts", $"Please check print count and try again");
             return false;
@@ -110,6 +133,8 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
             {
                 return false;
             }
+
+            OrderService.CurrentOrder.IsFinalized = true;
         }
 
         if(OrderService.CurrentOrder.ApprovedPrints.Sum(x => x.PrintAmount) == 0)
@@ -147,9 +172,12 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
         try
         {      
             var result = await CheckConditons();
+
             if (result)
             {
-                OrderService.CurrentOrder.EmployeeID = OrderService.CurrentOrder.Employee.EmployeeID;
+                OrderService.CurrentOrder.Name = OrderService.CurrentOrder.Name?.Trim() ?? string.Empty;
+                OrderService.CurrentOrder.Email = OrderService.CurrentOrder.Email?.Trim() ?? string.Empty;
+                OrderService.CurrentOrder.EmployeeID = Employee?.EmployeeID ?? -1;
                 await OrderService.CompleteOrderAsync();
                 navigationService.GoBack();
                 foreach (var item in PurchaseItems)
@@ -178,5 +206,33 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
 
 
 
+    }
+
+    [RelayCommand]
+    internal async Task Override()
+    {
+        var result = messageService.ShowMessage("Authorization needed", "Sorry, you can't perform this action. Please have your manager assist you. Would you like to continue?", "NO", ControlAppearance.Primary, true);
+
+        if (result.Result == MessageBoxResult.Primary)
+        {
+            if(contentDialogService is not null)
+            {
+                var dialog = new OverrideDialog(contentDialogService.GetDialogHost(),mySQLService);
+                var dialogResult = await dialog.ShowAsync();
+                
+                if (dialogResult == ContentDialogResult.Primary)
+                {
+                    if(mySQLService.ValidatePin(dialog.SelectedItem.EmployeeID, dialog.Link).Result)
+                    {
+                        _managerBypass = true;
+                        await CompleteOrder();
+                    }
+                    else
+                    {
+                        await messageService.ShowErrorMessage("Invalid Pin", "Incorrect Authorization PIN. Please try again.");
+                    }
+                }
+            }
+        }
     }
 }

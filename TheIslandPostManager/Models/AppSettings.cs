@@ -176,4 +176,11 @@ public class AppSettings : ConfigurationSection
         get { return (int)this["mysqlPortNumber"]; }
         set { this["mysqlPortNumber"] = value; }
     }
+
+    [ConfigurationProperty("scrollSync", DefaultValue = true)]
+    public bool ScrollSync
+    {
+        get { return (bool)this["scrollSync"]; }
+        set { this["scrollSync"] = value; }
+    }
 }

@@ -6,7 +6,7 @@ namespace TheIslandPostManager.Models;
 
 public partial class PurchaseItem : ObservableObject
 {
-    public PurchaseItem(int id,string description, string data, decimal cost, int imageCount,int printCount = -1)
+    public PurchaseItem(int id,string description, string data, decimal cost, int imageCount,int printCount = -1,int retailCount = 0)
     {
         ID = id;
         Description = description;
@@ -14,6 +14,7 @@ public partial class PurchaseItem : ObservableObject
         Cost = cost;
         ImageCount = imageCount;
         PrintCount = printCount == -1 ? imageCount : printCount;
+        RetailCount = retailCount;
     }
 
     public string Description { get; set; }
@@ -25,6 +26,7 @@ public partial class PurchaseItem : ObservableObject
     [ObservableProperty] private bool isFlyoutOpen;
     [ObservableProperty] private int imageCount;
     [ObservableProperty] private int printCount;
+    [ObservableProperty] private int retailCount;
 
     [ObservableProperty] private int amount;
     [ObservableProperty] private Visibility amountVisible = Visibility.Collapsed;

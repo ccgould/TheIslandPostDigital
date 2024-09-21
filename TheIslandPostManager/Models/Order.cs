@@ -35,6 +35,7 @@ public partial class Order : ObservableObject
     [ObservableProperty] private int approvedImagesCount;
     [ObservableProperty] private int approvedPrintsCount;
     [ObservableProperty] private int videoCount;
+    [ObservableProperty] private int printingCount;
     [ObservableProperty] private string orderPath;
     [ObservableProperty] private DateTime date;
     [ObservableProperty] private bool isFinalized;
@@ -42,16 +43,15 @@ public partial class Order : ObservableObject
     [ObservableProperty] private int maybeCount;
     [ObservableProperty] private BitmapImage thumbnail;
 
-    private int printCount;
-
-
-
     private string _orderFilter = "All";
     internal object EmployeeID;
 
 
     [ObservableProperty] private Employee employee;
-    [ObservableProperty] private ObservableCollection<PurchaseItem> purchaseItems;
+    [ObservableProperty] private ObservableCollection<PurchaseHistoryItem> purchaseHistoryItems;
+    //[ObservableProperty] private ObservableCollection<PurchaseItem> purchaseItems;
+
+
 
     public string OrderFilter
     {
@@ -67,24 +67,43 @@ public partial class Order : ObservableObject
         }
     }
 
+    [ObservableProperty] private int retailCount;
+
     public Order(int index)
     {
         Name = $"Order {index:D3}";
         CC = new();
-        OrderCollectionView = CollectionViewSource.GetDefaultView(currentImages);
+        LinkCollection();
+    }
+
+    internal void LinkCollection()
+    {
+        if(OrderCollectionView is not null)
+        {
+            OrderCollectionView.CurrentChanged -= OrderCollectionView_CurrentChanged;
+        }
+
+        OrderCollectionView = CollectionViewSource.GetDefaultView(CurrentImages);
         OrderCollectionView.Filter = FilterImages;
         OrderCollectionView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(ImageObj.IsSelected)));
         OrderCollectionView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(ImageObj.IsPrintable)));
         OrderCollectionView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(ImageObj.IsPending)));
         OrderCollectionView.SortDescriptions.Add(new SortDescription(nameof(ImageObj.Name), ListSortDirection.Ascending));
-
-        OrderCollectionView.CurrentChanged += delegate
+        
+        var item = (ImageObj)OrderCollectionView.CurrentItem;
+        
+        if (item is not null)
         {
-            CurrentImage = (ImageObj)OrderCollectionView.CurrentItem;
-        };
+            OrderCollectionView_CurrentChanged(null,null);
+        }
+
+        OrderCollectionView.CurrentChanged += OrderCollectionView_CurrentChanged;
     }
 
-    public int MyProperty { get; set; }
+    private void OrderCollectionView_CurrentChanged(object? sender, EventArgs e)
+    {
+        CurrentImage = (ImageObj)OrderCollectionView.CurrentItem;
+    }
 
     private bool FilterImages(object obj)
     {
@@ -169,6 +188,7 @@ public partial class Order : ObservableObject
             image.IsSelected = true;
             ApprovedImages.Add(image);
             UpdateSelectionCounts();
+            ApprovePrint(image);
         }
         else
         {
@@ -188,6 +208,7 @@ public partial class Order : ObservableObject
         {
             image.IsSelected = false;
             ApprovedImages.Remove(image);
+            DisApprovePrint(image);
         }
 
         UpdateSelectionCounts();
@@ -195,10 +216,17 @@ public partial class Order : ObservableObject
 
     internal void ApprovePrint(ImageObj image)
     {
+        if (!image.IsSelected) return;
+
         if(!ApprovedPrints.Contains(image))
         {
+            image.IsPrintable = true;
             ApprovedPrints.Add(image);
             UpdateSelectionCounts();
+        }
+        else
+        {
+            DisApprovePrint(image);
         }
     }
 
@@ -206,6 +234,7 @@ public partial class Order : ObservableObject
     {
         if(ApprovedPrints.Contains(image))
         {
+            image.IsPrintable = false;
             ApprovedPrints.Remove(image);
             UpdateSelectionCounts();
         }
@@ -224,11 +253,12 @@ public partial class Order : ObservableObject
         UpdateSelectionCounts();
     }
 
-    private void UpdateSelectionCounts()
+    public void UpdateSelectionCounts()
     {
         ApprovedImagesCount = CurrentImages.Count(x => x.IsSelected);
         MaybeCount = CurrentImages.Count(x => x.IsPending);
         ApprovedPrintsCount = CurrentImages.Count(x => x.IsPrintable);
+        PrintingCount = ApprovedPrints.Sum(x => x.PrintAmount);
     }
 
     internal void AddItemToCart(PurchaseItem purchaseItem)
@@ -267,4 +297,10 @@ public partial class Order : ObservableObject
     {
         Name = $"Order {currentOrderIndex:D3}";
     }
+
+    internal bool HasImages()
+    {
+        return ApprovedImagesCount > 0;
+    }
+
 }
