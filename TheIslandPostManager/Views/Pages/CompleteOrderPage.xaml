@@ -34,6 +34,8 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Grid.Column="0" Text="Cashier:" VerticalAlignment="Center" Margin="10,0" Foreground="White"/>
@@ -45,6 +47,9 @@
                     <TextBlock Grid.Column="4" Text="Passenger Email:" VerticalAlignment="Center" Margin="10,0" Foreground="White"/>
                     <ui:TextBox  IsTabStop="True" Grid.Column="5"  x:Name="PassengerEmailTxtb" Text="{Binding OrderService.CurrentOrder.Email, UpdateSourceTrigger=PropertyChanged}"/>
 
+                    <TextBlock Grid.Column="6" Text="Cash Type:" VerticalAlignment="Center" Margin="10,0" Foreground="White"/>
+                    <ComboBox  IsTabStop="False" Grid.Column="7"  x:Name="CashTypeCmbox" SelectedItem="{Binding OrderService.CurrentOrder.SelectedPurchaseType}" ItemsSource="{Binding OrderService.CurrentOrder.PurchaseTypeValues}">
+                    </ComboBox>
                 </Grid>
             </Border>
 
@@ -118,6 +123,10 @@
                                         <StackPanel Orientation="Horizontal" Margin="10,0">
                                             <ui:SymbolIcon ToolTip="Prints Count" Symbol="Print16" FontSize="20" Filled="True" Foreground="White"/>
                                             <TextBlock ToolTip="Prints Count" Text="{Binding PrintCount}" FontWeight="DemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="White"/>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="10,0">
+                                            <ui:SymbolIcon ToolTip="Retail Count" Symbol="BuildingRetail24" FontSize="20" Filled="True" Foreground="White"/>
+                                            <TextBlock ToolTip="Retail Count" Text="{Binding PrintCount}" FontWeight="DemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="White"/>
                                         </StackPanel>
                                     </StackPanel>
                                 </Grid>

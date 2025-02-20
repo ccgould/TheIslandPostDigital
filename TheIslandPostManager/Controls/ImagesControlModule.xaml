@@ -99,6 +99,7 @@ xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                                 <ComboBox IsTabStop="False" x:Name="filterCombo" SelectedIndex="0" Margin="10" Width="150" SelectedItem="{Binding Path=SelectedItem, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
                                     <ComboBoxItem>All</ComboBoxItem>
                                     <ComboBoxItem>Selected</ComboBoxItem>
+                                    <ComboBoxItem>Not Selected</ComboBoxItem>
                                     <ComboBoxItem>Maybe</ComboBoxItem>
                                     <ComboBoxItem>Both</ComboBoxItem>
                                 </ComboBox>

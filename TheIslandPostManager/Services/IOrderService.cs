@@ -24,6 +24,7 @@ public interface IOrderService
     void DeleteOrder(Order order);
     void DeleteOrder(string orderId);
     Task DeletePendingOrder(Order order);
+    int GetOrderCount();
     Task GetPendingOrders();
     Task OpenOrderFromPending(Order order);
     Task PendOrder(string name);

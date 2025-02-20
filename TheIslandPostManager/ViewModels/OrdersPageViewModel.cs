@@ -13,7 +13,7 @@ using TheIslandPostManager.Views.Pages;
 namespace TheIslandPostManager.ViewModels;
 public partial class OrdersPageViewModel : ObservableObject
 {
-    [ObservableProperty ]private IOrderService orderService;
+    [ObservableProperty] private IOrderService orderService;
     private readonly IEmailService emailService;
     private readonly IContentDialogService contentDialogService;
     private readonly IMySQLService mySQLService;

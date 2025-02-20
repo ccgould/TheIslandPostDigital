@@ -14,4 +14,7 @@ public interface IFileService
     void DeleteDirectory(string downloadURL);
     void Purge(Order order);
     void Copy(string imageUrl, string newFile);
+    void PurgeAll();
+    void DeleteBackups();
+    void CleanInputDirectory();
 }

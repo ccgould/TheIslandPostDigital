@@ -6,7 +6,7 @@ namespace TheIslandPostManager.Models;
 
 public partial class PurchaseItem : ObservableObject
 {
-    public PurchaseItem(int id,string description, string data, decimal cost, int imageCount,int printCount = -1,int retailCount = 0)
+    public PurchaseItem(int id,string description, string data, decimal cost, int imageCount,int printCount = -1,bool isRetailItem = false, int parent = -1)
     {
         ID = id;
         Description = description;
@@ -14,22 +14,25 @@ public partial class PurchaseItem : ObservableObject
         Cost = cost;
         ImageCount = imageCount;
         PrintCount = printCount == -1 ? imageCount : printCount;
-        RetailCount = retailCount;
+        IsRetailItem = isRetailItem;
+        Parent = parent;
     }
 
     public string Description { get; set; }
     public string Data { get; set; }
     public decimal Cost { get; set; }
     public int ID { get; set; }
+    public bool IsRetailItem { get; set; }    
+    public int Parent { get; set; }
+
 
     [ObservableProperty] private decimal totalCost;
     [ObservableProperty] private bool isFlyoutOpen;
     [ObservableProperty] private int imageCount;
     [ObservableProperty] private int printCount;
-    [ObservableProperty] private int retailCount;
-
     [ObservableProperty] private int amount;
     [ObservableProperty] private Visibility amountVisible = Visibility.Collapsed;
+    [ObservableProperty] private List<PurchaseItem> childrenItems = new()   ;
     private Action _callBack;
 
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
@@ -42,8 +45,13 @@ public partial class PurchaseItem : ObservableObject
         }
     }
 
-    public void IncrementAmount()
+    public void IncrementAmount(PurchaseItem child = null)
     {
+        if (child != null)
+        {
+            child.IncrementAmount();
+        }
+
         Amount += 1;
         ToggleAmountState();
         UpdateValues();
@@ -53,7 +61,16 @@ public partial class PurchaseItem : ObservableObject
 
     public void ChangeAmount(int amount)
     {
-        Amount = amount;
+
+        if(amount == 0)
+        {
+            Amount = amount;
+        }
+        else
+        {
+            Amount += amount;
+        }
+
         ToggleAmountState();
         UpdateValues();
     }
@@ -73,5 +90,15 @@ public partial class PurchaseItem : ObservableObject
     internal void Copy(PurchaseItem item)
     {
         ChangeAmount(item.Amount);
+    }
+
+    internal bool HasChildren()
+    {
+        return ChildrenItems?.Any() ?? false;
+    }
+
+    internal bool IsChild()
+    {
+        return Parent > -1;
     }
 }

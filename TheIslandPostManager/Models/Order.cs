@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
 using TheIslandPostManager.Services;
+using static Google.Protobuf.Reflection.FeatureSet.Types;
 
 namespace TheIslandPostManager.Models;
 
@@ -42,6 +43,17 @@ public partial class Order : ObservableObject
     [ObservableProperty] private bool isCompleteingOrder;
     [ObservableProperty] private int maybeCount;
     [ObservableProperty] private BitmapImage thumbnail;
+    [ObservableProperty] private PurchaseType selectedPurchaseType = PurchaseType.None;
+    [ObservableProperty] private int retailCount;
+    [ObservableProperty] private int itemID;
+    public IEnumerable<PurchaseType> PurchaseTypeValues
+    {
+        get
+        {
+            return Enum.GetValues(typeof(PurchaseType))
+                .Cast<PurchaseType>();
+        }
+    }
 
     private string _orderFilter = "All";
     internal object EmployeeID;
@@ -67,13 +79,14 @@ public partial class Order : ObservableObject
         }
     }
 
-    [ObservableProperty] private int retailCount;
+    //[ObservableProperty] private int retailCount;
 
     public Order(int index)
     {
         Name = $"Order {index:D3}";
         CC = new();
         LinkCollection();
+        purchaseHistoryItems = new();
     }
 
     internal void LinkCollection()
@@ -124,6 +137,8 @@ public partial class Order : ObservableObject
                 return image.IsPending;
             case "Both":
                 return image.IsPending || image.IsSelected;
+            case "Not Selected":
+                return !image.IsPending && !image.IsSelected;
             default:
                 return false;
         }
@@ -131,7 +146,7 @@ public partial class Order : ObservableObject
     internal string GetOutputLocation()
     {
         var settings = App.AppConfig.GetSection("AppSettings") as AppSettings;
-        return Path.Combine(settings.OutputDirectory, DateTime.Now.ToString("MMM_dd_yyyy"), Name);
+        return Path.Combine(settings.OutputDirectory,DateTime.Now.ToString("yyyy"),DateTime.Now.ToString("MMM"), DateTime.Now.ToString("MMM_dd_yyyy"), Name);
     }
     
     internal void Finalize()
@@ -147,7 +162,7 @@ public partial class Order : ObservableObject
         }
         catch (Exception ex)
         {
-            MessageBox.Show("Failed to delete image from inout directrory " + ex.Message, "Error");
+            MessageBox.Show("Failed to delete image from input directrory " + ex.Message, "Error");
         }
     }
 
@@ -302,5 +317,16 @@ public partial class Order : ObservableObject
     {
         return ApprovedImagesCount > 0;
     }
+}
 
+public enum PurchaseType
+{
+    [Description("No Cash (Default)")]
+    None = 1,
+    [Description("Cash Payment")]
+    Cash = 2,
+    [Description("Card Payment")]
+    Card = 3,
+    [Description("Both card and cash payments")]
+    Both = 4
 }

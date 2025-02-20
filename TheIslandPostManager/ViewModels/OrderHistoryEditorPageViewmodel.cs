@@ -45,11 +45,11 @@ public partial class OrderHistoryEditorPageViewmodel : ObservableObject
     }
 
     [RelayCommand]
-    private void Open(ImageObj imaageObj)
+    private void Open(PurchaseHistoryItem imaageObj)
     {
-        if (File.Exists(imaageObj.ImageUrl))
-        {
-            Process.Start("explorer.exe", "/select, " + imaageObj.ImageUrl);
-        }
+        //if (File.Exists(imaageObj.ImageUrl))
+        //{
+        //    Process.Start("explorer.exe", "/select, " + imaageObj.ImageUrl);
+        //}
     }
 }

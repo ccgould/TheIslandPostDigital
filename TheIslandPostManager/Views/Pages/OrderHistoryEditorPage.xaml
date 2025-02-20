@@ -75,7 +75,8 @@
                         Grid.Row="5"
                          Width="Auto" 
                          Foreground="White" 
-                         Text="N/A" 
+                         IsEnabled="False"
+                         Text="{Binding OrderService.CurrentHistoryOrder.Employee.FullName,Mode=OneWay}" 
                          Margin="5"
                          IsReadOnly="True"/>
 

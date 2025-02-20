@@ -46,10 +46,13 @@ public partial class BackupPageViewModel : ObservableObject
         Drives.Clear();
         foreach (DriveInfo drive in DriveInfo.GetDrives())
         {
-            if (drive.IsReady && drive.DriveFormat.Equals("exFat",StringComparison.OrdinalIgnoreCase) || drive.DriveType == DriveType.Removable || drive.DriveFormat.Equals("FAT32", StringComparison.OrdinalIgnoreCase))
+            if (drive.IsReady && (drive.DriveFormat.Equals("exFat",StringComparison.OrdinalIgnoreCase) || drive.DriveType == DriveType.Removable || drive.DriveFormat.Equals("FAT32", StringComparison.OrdinalIgnoreCase)))
             {
-                Drives.Add(drive);
-                AppendNewLog($"Added drive {drive.Name} to list.");
+                if (drive.TotalSize > 0) {
+                    Drives.Add(drive);
+                    AppendNewLog($"Added drive {drive.Name} to list.");
+                }
+
             }
         }
     }

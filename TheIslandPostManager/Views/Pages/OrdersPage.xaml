@@ -122,6 +122,16 @@
                                         <Label Grid.Column="1" Content="{Binding ApprovedPrintsCount}" VerticalAlignment="Center"/>
                                     </StackPanel>
 
+                                    <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="3" Margin="10,0">
+                                        <ui:SymbolIcon Symbol="Video16"  Margin="10,0"/>
+                                        <Label Grid.Column="1" Content="{Binding VideoCount}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+
+                                    <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="3" Margin="10,0">
+                                        <ui:SymbolIcon Symbol="BuildingRetail20"  Margin="10,0"/>
+                                        <Label Grid.Column="1" Content="{Binding RetailCount}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+
                                     <ui:SymbolIcon Symbol="Mail24" Margin="10,0" Foreground="{Binding IsFinalized, Converter={StaticResource MailBoolToColorConverter}, FallbackValue=Red}"/>
 
                                     <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="3" Margin="10,0">
@@ -133,7 +143,6 @@
                                         <ui:SymbolIcon Symbol="CalendarArrowCounterclockwise20"  Margin="10,0" Foreground="Cyan"/>
                                         <TextBlock Grid.Column="1" Text="{Binding Date,StringFormat={}{0:MMMM dd yyyy '@' hh:mm tt}}" VerticalAlignment="Center"/>
                                     </StackPanel>
-
                                 </StackPanel>
 
                             </Grid>

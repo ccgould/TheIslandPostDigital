@@ -5,6 +5,7 @@ using TheIslandPostManager.Models;
 using TheIslandPostManager.Services;
 using Wpf.Ui;
 using Wpf.Ui.Controls;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 
 namespace TheIslandPostManager.Dialogs;
 
@@ -15,6 +16,8 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
     private readonly IMessageService messageService;
     private readonly INavigationService navigationService;
     private readonly IContentDialogService contentDialogService;
+    private readonly IFileService fileService;
+    private IOrderService _orderService;
     [ObservableProperty] private ObservableCollection<PurchaseItem> purchaseItems;
     [ObservableProperty] private ObservableCollection<Employee> employees;
     [ObservableProperty] private bool isFlyoutOpen;
@@ -22,9 +25,11 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
     [ObservableProperty] private bool showPrintCountOverMessage;
     [ObservableProperty] private int printCount;
     [ObservableProperty] private Employee employee;
+    [ObservableProperty] private int retailCount;
     private bool _managerBypass;
 
-    public CompleteOrderDialogViewModel(IOrderService orderService, IMySQLService mySQLService, IMessageService messageService,INavigationService navigationService, IContentDialogService contentDialogService)
+
+    public CompleteOrderDialogViewModel(IOrderService orderService, IMySQLService mySQLService, IMessageService messageService,INavigationService navigationService, IContentDialogService contentDialogService,IFileService fileService)
     {
         Employees = mySQLService.GetEmployees().Result;
         PrintCount = orderService.CurrentOrder.ApprovedPrints.Sum(x => x.PrintAmount);
@@ -33,30 +38,35 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
         this.messageService = messageService;
         this.navigationService = navigationService;
         this.contentDialogService = contentDialogService;
-        PurchaseItems = mySQLService.GetStoreItems()?.Result;
-        var pages = navigationService.GetNavigationControl();
-
-        if (orderService.CurrentOrder.Cart.Any())
-        {
-            foreach (var item in orderService.CurrentOrder.Cart)
-            {
-                foreach (var item2 in purchaseItems)
-                {
-                    if (item.ID == item2.ID)
-                    {
-                        item2.Copy(item);
-                        continue;
-                    }
-                }
-            }
-        }
+        this.fileService = fileService;
+        _orderService = orderService;
     }
 
     [RelayCommand]
-    private void ItemClick(PurchaseItem purchaseItem)
+    private async Task ItemClick(PurchaseItem purchaseItem)
     {
-        purchaseItem.IncrementAmount();
-        OrderService.CurrentOrder.AddItemToCart(purchaseItem);
+        if (purchaseItem.IsRetailItem && purchaseItem.HasChildren()) 
+        {
+            var itemsDialog = new RetailItemsListPopup(contentDialogService.GetDialogHost(),purchaseItem.ChildrenItems);
+            var dialogResult = await itemsDialog.ShowAsync();
+
+            if(dialogResult == ContentDialogResult.None)
+            {
+                return;
+            }
+            else
+            {
+                purchaseItem.IncrementAmount(itemsDialog.SelectedItem);
+                OrderService.CurrentOrder.AddItemToCart(itemsDialog.SelectedItem);
+            }
+        }
+        else
+        {
+            purchaseItem.IncrementAmount();
+            OrderService.CurrentOrder.AddItemToCart(purchaseItem);
+        }
+
+        RetailCount = OrderService.CurrentOrder.Cart.Count(x=>x.IsRetailItem);
     }
 
     internal async Task<bool> CheckConditons()
@@ -70,7 +80,13 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
         var imageCount = 0;
         var printCount = 0;
 
-        if(Employee is null)
+        if(OrderService.CurrentOrder.SelectedPurchaseType == PurchaseType.None)
+        {
+            await messageService.ShowMessage("Cash Type Not Choosen", "Please select if the transaction is Card, Cash or Both", "OK", ControlAppearance.Primary, false);
+            return false;
+        }
+
+        if (Employee is null)
         {
             await messageService.ShowMessage("Cashier Not Choosen", "Please select a cashier.", "OK", ControlAppearance.Primary, false);
             return false;
@@ -88,65 +104,44 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
             printCount += item.PrintCount * item.Amount;
         }
 
-        //ShowImageCountOverMessage = imageCount > OrderService.CurrentOrder.ApprovedImagesCount;
         if (!OrderService.CurrentOrder.Cart.Any())
         {
             await messageService.ShowMessage("Order cost not entered.", "Please select the package/s that best suit this order.", "OK", ControlAppearance.Primary, false);
             return false;
         }
 
-        //if (imageCount < OrderService.CurrentOrder.ApprovedImagesCount)
-        //{
-        //    await messageService.ShowMessage("Incorrect Amounts", $"Please check image count and retry.");
-        //    return false;
-        //}
-
-        var printSum = OrderService.CurrentOrder.ApprovedPrints.Sum(x => x.PrintAmount);
-
-        if (printCount < printSum)
+        if(OrderService.CurrentOrder.Cart.Any(x => x.IsRetailItem == false))
         {
-            await messageService.ShowMessage("Incorrect Amounts", $"Please check print count and try again");
-            return false;
-        }
-
-        if (printCount > printSum && printSum != 0)
-        {
-            await messageService.ShowMessage("Incorrect Amounts", $"Please check print count and try again");
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(OrderService.CurrentOrder.Name))
-        {
-            var result = await messageService.ShowMessage("No Name Provided", "Please check name field", "OK");
-
-            if (result == MessageBoxResult.None)
+            if (OrderService.CurrentOrder.ApprovedImagesCount <= 0)
             {
-                return false;
-            }
-        }
-
-        if (string.IsNullOrWhiteSpace(OrderService.CurrentOrder.Email))
-        {
-            var result = await messageService.ShowMessage("No Email Provided", "There isnt any email provided, this will result in no digitals sent. Do you want to continue?", "NO", ControlAppearance.Primary, true);
-
-            if (result == MessageBoxResult.None)
-            {
+                messageService.ShowSnackBarMessage("Attention", "No images selected. Please select a photo before attempting to complete this order", ControlAppearance.Caution, SymbolRegular.Stop20);
                 return false;
             }
 
-            OrderService.CurrentOrder.IsFinalized = true;
-        }
+            var printSum = OrderService.CurrentOrder.ApprovedPrints.Sum(x => x.PrintAmount);
 
-        if(OrderService.CurrentOrder.ApprovedPrints.Sum(x => x.PrintAmount) == 0)
-        {
-            var result = await messageService.ShowMessage("No prints", "There arent any prints selected, this will result in no prints. Do you want to continue?", "NO", ControlAppearance.Primary, true);
-
-            if (result == MessageBoxResult.None)
+            if (printCount < printSum)
             {
+                await messageService.ShowMessage("Incorrect Amounts", $"Please check print count and try again");
                 return false;
             }
-        }
 
+            if (printCount > printSum && printSum != 0)
+            {
+                await messageService.ShowMessage("Incorrect Amounts", $"Please check print count and try again");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(OrderService.CurrentOrder.Name) && OrderService.CurrentOrder.Cart.Any(x => x.IsRetailItem == false))
+            {
+                var result = await messageService.ShowMessage("No Name Provided", "Please check name field", "OK");
+
+                if (result == MessageBoxResult.None)
+                {
+                    return false;
+                }
+            }
+        }
         return true;
     }
 
@@ -162,13 +157,26 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
     private void Delete(PurchaseItem purchaseItem)
     {
         OrderService.CurrentOrder.Cart.Remove(purchaseItem);
-        purchaseItem.ChangeAmount(0);
+
+        if (purchaseItem.IsChild())
+        {
+            var parent = purchaseItems.FirstOrDefault(x => x.ID == purchaseItem.Parent);
+            parent?.ChangeAmount(-purchaseItem.Amount);
+        }
+        else
+        {
+            purchaseItem.ChangeAmount(0);
+        }
+
         OrderService.CurrentOrder.UpdateCartTotal();
     }
 
     [RelayCommand]
     internal async Task CompleteOrder()
     {
+
+       // throw new DivideByZeroException();
+
         try
         {      
             var result = await CheckConditons();
@@ -178,12 +186,20 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
                 OrderService.CurrentOrder.Name = OrderService.CurrentOrder.Name?.Trim() ?? string.Empty;
                 OrderService.CurrentOrder.Email = OrderService.CurrentOrder.Email?.Trim() ?? string.Empty;
                 OrderService.CurrentOrder.EmployeeID = Employee?.EmployeeID ?? -1;
+                OrderService.CurrentOrder.VideoCount = GetVideoCount();
                 await OrderService.CompleteOrderAsync();
                 navigationService.GoBack();
+
+
                 foreach (var item in PurchaseItems)
                 {
                     item.ChangeAmount(0);
                 }
+            }
+
+            if(OrderService.GetOrderCount() == 0)
+            {
+                fileService.PurgeAll();
             }
 
         }
@@ -194,6 +210,22 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
         }
     }
 
+    private int GetVideoCount()
+    {
+      var video =    OrderService.CurrentOrder.Cart.Where(x => x.Data == "RC3");
+
+        int amount = 0;
+        if(video is not null)
+        {
+            foreach (var item in video)
+            {
+                amount += item.Amount;
+            }
+        }
+
+        return amount;
+    }
+
     [RelayCommand]
     internal void CancelOrder()
     {
@@ -202,6 +234,7 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
         if (result.Result == MessageBoxResult.Primary)
         {
             navigationService.GoBack();
+            _orderService.CurrentOrder.IsCompleteingOrder = false;
         }
 
 
@@ -211,25 +244,53 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
     [RelayCommand]
     internal async Task Override()
     {
-        var result = messageService.ShowMessage("Authorization needed", "Sorry, you can't perform this action. Please have your manager assist you. Would you like to continue?", "NO", ControlAppearance.Primary, true);
-
-        if (result.Result == MessageBoxResult.Primary)
+        try
         {
-            if(contentDialogService is not null)
+            var result = messageService.ShowMessage("Authorization needed", "Sorry, you can't perform this action. Please have your manager assist you. Would you like to continue?", "NO", ControlAppearance.Primary, true);
+
+            if (result.Result == MessageBoxResult.Primary)
             {
-                var dialog = new OverrideDialog(contentDialogService.GetDialogHost(),mySQLService);
-                var dialogResult = await dialog.ShowAsync();
-                
-                if (dialogResult == ContentDialogResult.Primary)
+                if (contentDialogService is not null)
                 {
-                    if(mySQLService.ValidatePin(dialog.SelectedItem.EmployeeID, dialog.Link).Result)
+                    var dialog = new OverrideDialog(contentDialogService.GetDialogHost(), mySQLService);
+                    var dialogResult = await dialog.ShowAsync();
+
+                    if (dialogResult == ContentDialogResult.Primary)
                     {
-                        _managerBypass = true;
-                        await CompleteOrder();
+                        if (mySQLService.ValidatePin(dialog.SelectedItem.EmployeeID, dialog.Link).Result)
+                        {
+                            _managerBypass = true;
+                            await CompleteOrder();
+                        }
+                        else
+                        {
+                            await messageService.ShowErrorMessage("Invalid Pin", "Incorrect Authorization PIN. Please try again.");
+                        }
                     }
-                    else
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await messageService.ShowErrorMessage("Complete Order Error", ex.Message, ex.StackTrace, "4acdb1dc-e0cd-4a23-804c-4308f709cbcc", true);
+        }
+    }
+
+    internal void GetCartItems()
+    {
+        PurchaseItems = mySQLService.GetStoreItems(App.IsRetailPage)?.Result;
+
+
+        if (orderService.CurrentOrder.Cart.Any())
+        {
+            foreach (var item in orderService.CurrentOrder.Cart)
+            {
+                foreach (var item2 in purchaseItems)
+                {
+                    if (item.ID == item2.ID)
                     {
-                        await messageService.ShowErrorMessage("Invalid Pin", "Incorrect Authorization PIN. Please try again.");
+                        item2.Copy(item);
+                        continue;
                     }
                 }
             }

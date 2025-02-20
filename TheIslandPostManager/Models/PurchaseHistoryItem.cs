@@ -11,9 +11,11 @@ namespace TheIslandPostManager.Models;
 /// </summary>
 public class PurchaseHistoryItem
 {
-    public int PhotoAccount { get; set; }
+    //public int PhotoAccount { get; set; }
     public int PrintCount { get; set; }
     public string ImageLocation { get; set; }
     public int RetailCount { get; set; }
     public string Description { get; set; }
+    public string ItemID { get; set; }
+    public int Amount { get; set; }
 }

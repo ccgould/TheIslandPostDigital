@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AssemblyVersion>1.0.126.0</AssemblyVersion>
+    <FileVersion>1.0.126.0</FileVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Assests\applicationIcon-1024.png" />
+    <None Remove="Assests\applicationIcon-256.png" />
+    <None Remove="Assests\islandPostLogo.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageReference Include="Syncfusion.Licensing" Version="28.1.37" />
+    <PackageReference Include="Syncfusion.SfChart.WPF" Version="28.1.37" />
+    <PackageReference Include="Syncfusion.SfInput.WPF" Version="28.1.37" />
+    <PackageReference Include="Syncfusion.SfSkinManager.WPF" Version="28.1.37" />
+    <PackageReference Include="Syncfusion.Shared.WPF" Version="28.1.37" />
+    <PackageReference Include="Syncfusion.Themes.FluentDark.WPF" Version="28.1.37" />
+    <PackageReference Include="Syncfusion.Themes.FluentLight.WPF" Version="28.1.37" />
+    <PackageReference Include="WPF-UI" Version="3.0.5" />
+    <PackageReference Include="WPF-UI.Tray" Version="3.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Syncfusion.Themes.Windows11Dark.WPF">
+      <HintPath>..\..\..\..\..\..\Desktop\Windows11Dark\bin\Debug\Syncfusion.Themes.Windows11Dark.WPF.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assests\applicationIcon-1024.png" />
+    <Resource Include="Assests\applicationIcon-256.png" />
+    <Resource Include="Assests\islandPostLogo.png" />
+  </ItemGroup>
+
+</Project>

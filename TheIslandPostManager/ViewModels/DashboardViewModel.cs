@@ -31,6 +31,7 @@ public partial class DashboardViewModel : ObservableObject
 
     public DashboardViewModel(IOrderService orderService,IFileService fileService,IImageService imageService,IMessageService messageService, IContentDialogService contentDialogService,IMySQLService mySQLService, INavigationService navigationService)
     {
+        fileService.CleanInputDirectory();
         OrderService = orderService;
         FileService = fileService;
         ImageService = imageService;
@@ -61,7 +62,11 @@ public partial class DashboardViewModel : ObservableObject
 
     public async Task CreateOrder()
     {
-        if (OrderService.CurrentOrder is null) return;
+        if (OrderService.CurrentOrder is null)
+        {
+            await OrderService.CreateOrder(false);
+            return;
+        };
 
         var result = await messageService.ShowMessage("Copy Images", "Would you like to copy the images from the current order to this new ?","Cancel",Wpf.Ui.Controls.ControlAppearance.Primary,true,"Yes",true,"No");
 

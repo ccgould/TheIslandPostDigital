@@ -4,6 +4,7 @@ namespace TheIslandPostManager.Models;
 
 public class AppSettings : ConfigurationSection
 {
+    private List<string> additionalDirectories;
     #region Directories
 
 
@@ -183,4 +184,17 @@ public class AppSettings : ConfigurationSection
         get { return (bool)this["scrollSync"]; }
         set { this["scrollSync"] = value; }
     }
+
+    [ConfigurationProperty("additionalDirectories")]
+
+    public string AdditionalDirectories
+    {
+        get { return (string)this["additionalDirectories"]; }
+        set
+        {
+            this["additionalDirectories"] = value;
+        }
+    }
+
+
 }

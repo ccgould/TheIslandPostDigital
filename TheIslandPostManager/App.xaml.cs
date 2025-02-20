@@ -2,30 +2,26 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Configuration;
-using System.Data;
 using System.IO;
 using System.Net.Mail;
 using System.Net;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Threading;
 using TheIslandPostManager.Models;
 using TheIslandPostManager.Services;
-using TheIslandPostManager.Windows;
 using Wpf.Ui;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
-using NetSparkleUpdater.Enums;
-using NetSparkleUpdater.SignatureVerifiers;
 using NetSparkleUpdater;
-using System.Drawing;
+using Serilog;
+using TheIslandPostManager.ViewModels;
 
 namespace TheIslandPostManager;
 /// <summary>
 /// Interaction logic for App.xaml
 /// </summary>
-public partial class App
+public partial class App : Application
 {
-
+    public static bool IsRetailPage { get; set; }
     public static Configuration AppConfig { get; set; } = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 
 
@@ -89,9 +85,14 @@ public partial class App
                 services.AddTransient<Views.Pages.OrderHistoryEditorPage>();
                 services.AddTransient<ViewModels.OrderHistoryEditorPageViewmodel>();
 
+                services.AddTransient<Views.Pages.RetailPage>();
 
                 services.AddTransient<Views.Pages.CompleteOrderPage>();
                 services.AddTransient<Dialogs.CompleteOrderDialogViewModel>();
+
+
+                services.AddTransient<Views.Pages.EarningsPage>();
+                services.AddTransient<EarningsPageViewmodel>();
 
                 //services.AddSingleton<CustomerWindow>();
                 //services.AddSingleton<ViewModels.CustomerWindowViewmodel>();
@@ -163,7 +164,47 @@ public partial class App
 
         setting.InputDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Input");
         await _host.StartAsync();
-    } 
+
+        SetupExceptionHandling();
+    }
+
+    private void SetupExceptionHandling()
+    {
+        AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            LogUnhandledException((Exception)e.ExceptionObject, "AppDomain.CurrentDomain.UnhandledException");
+
+        DispatcherUnhandledException += (s, e) =>
+        {
+            LogUnhandledException(e.Exception, "Application.Current.DispatcherUnhandledException");
+            e.Handled = true;
+        };
+
+        TaskScheduler.UnobservedTaskException += (s, e) =>
+        {
+            LogUnhandledException(e.Exception, "TaskScheduler.UnobservedTaskException");
+            e.SetObserved();
+        };
+    }
+
+    private void LogUnhandledException(Exception exception, string source)
+    {
+        string message = $"Unhandled exception ({source})";
+        try
+        {
+            System.Reflection.AssemblyName assemblyName = System.Reflection.Assembly.GetExecutingAssembly().GetName();
+            message = string.Format("Unhandled exception in {0} v{1}", assemblyName.Name, assemblyName.Version);
+        }
+        catch (Exception ex)
+        {
+            //await messageService.ShowErrorMessage("Complete Order Error", ex.Message, ex.StackTrace, "952a5653-4a41-4119-81b8-b423faddb787", true);
+            Log.Error(ex, "Exception in LogUnhandledException");
+        }
+        finally
+        {
+            MessageBox.Show("Error occured Please Check Log (Error Code: 0793ca31-5b45-45e5-b33f-28bbf660f3b9)");
+            Log.Error(exception, message);
+        }
+    }
 
     /// <summary>
     /// Occurs when the application is closing.

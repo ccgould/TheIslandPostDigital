@@ -112,10 +112,13 @@ public partial class OrderService : ObservableObject, IOrderService
     {
         CurrentOrders.Remove(order);
 
-        if(CurrentOrder == order)
+        order.Finalize();
+
+        if (CurrentOrder == order)
         {
             CurrentOrder = null;
         }
+
         GC.Collect();
     }
 
@@ -426,6 +429,11 @@ public partial class OrderService : ObservableObject, IOrderService
         {
             RemoveImageFromOrder(item);
         }
+    }
+
+    public int GetOrderCount()
+    {
+        return CurrentOrders.Count();
     }
 }
 public class DirectoryInfoComparer : IEqualityComparer<DirectoryInfo>

@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using TheIslandPostManager.Models;
 using TheIslandPostManager.Services;
+using TheIslandPostManager.ViewModels;
 
 namespace TheIslandPostManager.Views.Pages;
 /// <summary>
@@ -13,11 +14,14 @@ public partial class SettingsPage : Page
 {
     private readonly IMySQLService mySQLService;
 
+    private AppSettings? settings => App.AppConfig.GetSection("AppSettings") as AppSettings;
+    public SettingsViewModel ViewModel { get; set; }
 
-    public SettingsPage(IMySQLService mySQLService)
+    public SettingsPage(IMySQLService mySQLService, SettingsViewModel vm)
     {
         InitializeComponent();
-        DataContext = App.AppConfig.GetSection("AppSettings");
+        ViewModel = vm;
+        DataContext = vm;
         this.mySQLService = mySQLService;
     }
 
@@ -143,4 +147,6 @@ public partial class SettingsPage : Page
             App.AppConfig.Save();
         }
     }
+
+      
 }

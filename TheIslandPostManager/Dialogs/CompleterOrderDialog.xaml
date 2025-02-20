@@ -47,6 +47,8 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Grid.Column="0" Text="Cashier:" VerticalAlignment="Center" Margin="10,0"/>
@@ -57,6 +59,14 @@
 
                     <TextBlock Grid.Column="4" Text="Passenger Email:" VerticalAlignment="Center" Margin="10,0"/>
                     <ui:TextBox  IsTabStop="False" Grid.Column="5"  x:Name="PassengerEmailTxtb" Text="{Binding OrderService.CurrentOrder.Email, UpdateSourceTrigger=PropertyChanged}"/>
+
+                    <TextBlock Grid.Column="6" Text="Cash Type:" VerticalAlignment="Center" Margin="10,0"/>
+                    <ComboBox  IsTabStop="False" Grid.Column="7"  x:Name="CashTypeCmbox">
+                        <ComboBoxItem Content="None"/>
+                        <ComboBoxItem Content="Cash"/>
+                        <ComboBoxItem Content="Card"/>
+                        <ComboBoxItem Content="Both"/>
+                    </ComboBox>
 
                 </Grid>
             </Border>

@@ -4,6 +4,7 @@ using Wpf.Ui.Controls;
 using Wpf.Ui;
 using TheIslandPostManager.Services;
 using System.Reflection;
+using TheIslandPostManager.Views.Pages;
 
 namespace TheIslandPostManager.ViewModels;
 public partial class MainWindowViewModel : ObservableObject
@@ -32,7 +33,7 @@ public partial class MainWindowViewModel : ObservableObject
 
     private void InitializeViewModel()
     {
-        ApplicationTitle = $"Island Post Digitial - Photography Depmartment V{Assembly.GetExecutingAssembly().GetName().Version}";
+        ApplicationTitle = $"Island Post Digitial - Photography Department V{Assembly.GetExecutingAssembly().GetName().Version}";
 
         NavigationItems = new ObservableCollection<object>
         {
@@ -66,6 +67,13 @@ public partial class MainWindowViewModel : ObservableObject
                 TargetPageType = typeof(Views.Pages.BackupPage),
                 IsTabStop = false
             },
+             new NavigationViewItem()
+            {
+                Content = "Earnings",
+                Icon = new SymbolIcon { Symbol = SymbolRegular.Money24 },
+                TargetPageType = typeof(Views.Pages.EarningsPage),
+                IsTabStop = false
+            },
 
             new NavigationViewItem()
             {
@@ -89,20 +97,15 @@ public partial class MainWindowViewModel : ObservableObject
         };
 
 
-        var f = new NavigationViewItem()
-        {
-            Content = "Retail",
-            Icon = new SymbolIcon { Symbol = SymbolRegular.BuildingRetail24 },
-            TargetPageType = typeof(Views.Pages.CompleteOrderPage),
-            IsTabStop = false
-        };
+        //var retailPage = new NavigationViewItem()
+        //{
+        //    Content = "Retail",
+        //    Icon = new SymbolIcon { Symbol = SymbolRegular.BuildingRetail24 },
+        //    TargetPageType = typeof(Views.Pages.RetailPage),
+        //    IsTabStop = false
+        //};
 
-        f.Loaded += (s, e) =>
-        {
-
-        };
-
-        NavigationItems.Insert(2, f);
+        //NavigationItems.Insert(2, retailPage);
 
         NavigationFooter = new ObservableCollection<object>
         {

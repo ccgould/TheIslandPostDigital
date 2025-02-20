@@ -32,70 +32,77 @@ public partial class CompleterOrderDialog : ContentDialog
 
     protected override async void OnButtonClick(ContentDialogButton button)
     {
-        if(button == ContentDialogButton.Primary)
+        try
         {
-            TextBlock1.Visibility = System.Windows.Visibility.Collapsed;
-            TextBlock.Visibility = System.Windows.Visibility.Collapsed;
-
-            bool valid = true;
-
-            if (ClerkCmbox.SelectedIndex == -1)
+            if (button == ContentDialogButton.Primary)
             {
-                TextBlock.Visibility = System.Windows.Visibility.Visible;
-                ClerkCmbox.Focus();
-                valid = false;
+                TextBlock1.Visibility = System.Windows.Visibility.Collapsed;
+                TextBlock.Visibility = System.Windows.Visibility.Collapsed;
 
-            }
+                bool valid = true;
 
-            if (string.IsNullOrWhiteSpace(PassengerNameTxtb.Text))
-            {
-                TextBlock1.Visibility = System.Windows.Visibility.Visible;
-                PassengerNameTxtb.Focus();
-                valid = false;
-            }
-
-            if (Cart.Items.IsEmpty)
-            {
-               await messageService.ShowMessage("Order cost not entered.", "Please select the package/s that best suit this order.","OK",ControlAppearance.Primary,false);
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(PassengerEmailTxtb.Text))
-            {
-                var result = await messageService.ShowMessage("No Email Provided", "There is any email provided, this will result in no digitals sent. Do you want to continue?", "NO", ControlAppearance.Primary, true);
-                
-                if (result == MessageBoxResult.None)
+                if (ClerkCmbox.SelectedIndex == -1)
                 {
+                    TextBlock.Visibility = System.Windows.Visibility.Visible;
+                    ClerkCmbox.Focus();
+                    valid = false;
+
+                }
+
+                if (string.IsNullOrWhiteSpace(PassengerNameTxtb.Text))
+                {
+                    TextBlock1.Visibility = System.Windows.Visibility.Visible;
+                    PassengerNameTxtb.Focus();
+                    valid = false;
+                }
+
+                if (Cart.Items.IsEmpty)
+                {
+                    await messageService.ShowMessage("Order cost not entered.", "Please select the package/s that best suit this order.", "OK", ControlAppearance.Primary, false);
                     return;
                 }
-            }
 
-            if (!ViewModel.CheckConditons().Result)
-            {
-                var result = await messageService.ShowMessage("Incorrect Amounts", "There are incorrect Prints or Images count in this order. Do you want to continue?", "NO",ControlAppearance.Primary,true);
-
-                if(result == MessageBoxResult.None)
+                if (string.IsNullOrWhiteSpace(PassengerEmailTxtb.Text))
                 {
-                    return;
+                    var result = await messageService.ShowMessage("No Email Provided", "There is any email provided, this will result in no digitals sent. Do you want to continue?", "NO", ControlAppearance.Primary, true);
+
+                    if (result == MessageBoxResult.None)
+                    {
+                        return;
+                    }
+                }
+
+                if (!ViewModel.CheckConditons().Result)
+                {
+                    var result = await messageService.ShowMessage("Incorrect Amounts", "There are incorrect Prints or Images count in this order. Do you want to continue?", "NO", ControlAppearance.Primary, true);
+
+                    if (result == MessageBoxResult.None)
+                    {
+                        return;
+                    }
+                }
+
+
+
+                if (valid)
+                {
+                    base.OnButtonClick(button);
+                    await ViewModel.CompleteOrder();
                 }
             }
-
-
-
-            if (valid)
+            else
             {
-                base.OnButtonClick(button);
-               await ViewModel.CompleteOrder();
+                var result = messageService.ShowMessage("Close Window", "Are you sure you would like to close this dialog.", "NO", ControlAppearance.Primary, true);
+
+                if (result.Result == MessageBoxResult.Primary)
+                {
+                    base.OnButtonClick(button);
+                }
             }
         }
-        else
+        catch (Exception ex)
         {
-            var result = messageService.ShowMessage("Close Window", "Are you sure you would like to close this dialog.", "NO", ControlAppearance.Primary, true);
-
-            if(result.Result == MessageBoxResult.Primary)
-            {
-                base.OnButtonClick(button);
-            }
+            await messageService.ShowErrorMessage("Complete Order Error", ex.Message, ex.StackTrace, "6eee8e5e-9005-472b-b140-7cde25ca08d1", true);
         }
 
 

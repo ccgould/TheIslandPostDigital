@@ -1,5 +1,8 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.Extensions.Primitives;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Text;
 using System.Windows.Media.Imaging;
 using TheIslandPostManager.Helpers;
 using TheIslandPostManager.Models;
@@ -14,7 +17,9 @@ public class FileService : IFileService
     public FileService(IMessageService messageService)
     {
         this.messageService = messageService;
+        DeleteBackups();
     }
+
     public void DeleteFile(string path)
     {
         try
@@ -218,6 +223,31 @@ public class FileService : IFileService
         }
     }
 
+    public void PurgeAll()
+    {
+        try
+        {
+            if (Directory.Exists(settings.InputDirectory))
+            {
+                System.IO.DirectoryInfo di = new DirectoryInfo(settings.InputDirectory);
+
+
+                foreach (FileInfo file in di.GetFiles())
+                {
+                    file.Delete();
+                }
+                foreach (DirectoryInfo dir in di.GetDirectories())
+                {
+                    dir.Delete(true);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            messageService.ShowErrorMessage("Error Occured!", ex.Message, ex.StackTrace, "c02511ad-1db1-4bbb-9057-d70c4fc36917");
+        }
+    }
+
     public void Purge(Order order)
     {
         try
@@ -257,6 +287,126 @@ public class FileService : IFileService
         {
             messageService.ShowErrorMessage("Error Occured!", ex.Message, ex.StackTrace, "54e626ff-d252-4b45-88e7-7fc0d532c1dc");
 
+        }
+    }
+
+    public void DeleteBackups()
+    {
+        DateTime beginDate = DateTime.Now;
+        var daysLeft = DateTime.DaysInMonth(beginDate.Year, beginDate.Month) - beginDate.Day;
+
+        if (daysLeft == 0)
+        {
+            CleanInputDirectory();
+            CleanYearDirectory();
+            CleanDirectory();
+        }
+    }
+
+    public void CleanupAdditionalDirectories()
+    {
+        try
+        {
+            var purges = settings.AdditionalDirectories?.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (purges is not null)
+            {
+                foreach (var item in purges)
+                {
+                    DirectoryInfo d = new DirectoryInfo(item);
+
+                    FileInfo[] Files = d.GetFiles("*.*");
+
+                    foreach (FileInfo file in Files)
+                    {
+                        File.Delete(file.FullName);
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            messageService.ShowErrorMessage("Error", ex.Message, ex.StackTrace, "81d3e1db-5556-45a9-af60-46b80acaf025", true);
+        }
+    }
+
+    public void CleanInputDirectory()
+    {
+        DirectoryInfo d = new DirectoryInfo(settings.InputDirectory);
+
+        FileInfo[] Files = d.GetFiles("*.*");
+
+        string str = "";
+
+        foreach (FileInfo file in Files)
+        {
+            File.Delete(file.FullName);
+        }
+    }
+
+    private void CleanYearDirectory()
+    {
+        DirectoryInfo d = new DirectoryInfo(settings.BackupDirectory);
+
+        FileInfo[] Files = d.GetFiles("*.*");
+
+        string str = "";
+
+        foreach (FileInfo file in Files)
+        {
+            File.Delete(file.FullName);
+        }
+
+        var directories = Directory.GetDirectories(settings.BackupDirectory);
+
+        foreach (var dir in directories)
+        {
+            var name = Path.GetFileName(dir);
+            
+            if(Int32.TryParse(name,out var year))
+            {
+                if(year < DateTime.Now.Year)
+                {
+                    Directory.Delete(dir);
+                }
+            }
+            else
+            {
+                Directory.Delete(dir);
+            }
+        }
+    }
+
+    private void CleanDirectory()
+    {
+        var directory = Path.Combine(settings.BackupDirectory, DateTime.Now.Year.ToString());
+        DirectoryInfo d = new DirectoryInfo(directory);
+
+        FileInfo[] Files = d.GetFiles("*.*");
+        
+
+        string str = "";
+
+        foreach (FileInfo file in Files)
+        {
+            File.Delete(file.FullName);
+        }
+
+        foreach (var dir in d.GetDirectories())
+        {
+            CultureInfo enUS = new CultureInfo("en-US");
+
+            if (DateTime.TryParseExact(dir.Name, "MMM", enUS , DateTimeStyles.None, out var dateValue))
+            {
+                if (dateValue.Month < DateTime.Now.Month)
+                {
+                    Directory.Delete(dir.FullName,true);
+                }
+            }
+            else
+            {
+                Directory.Delete(dir.FullName, true);
+            }
         }
     }
 }
