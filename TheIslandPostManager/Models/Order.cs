@@ -39,6 +39,7 @@ public partial class Order : ObservableObject
     [ObservableProperty] private int printingCount;
     [ObservableProperty] private string orderPath;
     [ObservableProperty] private DateTime date;
+    [ObservableProperty] private DateTime time;
     [ObservableProperty] private bool isFinalized;
     [ObservableProperty] private bool isCompleteingOrder;
     [ObservableProperty] private int maybeCount;
@@ -61,6 +62,8 @@ public partial class Order : ObservableObject
 
     [ObservableProperty] private Employee employee;
     [ObservableProperty] private ObservableCollection<PurchaseHistoryItem> purchaseHistoryItems;
+    [ObservableProperty] private int iD;
+
     //[ObservableProperty] private ObservableCollection<PurchaseItem> purchaseItems;
 
 
@@ -328,5 +331,7 @@ public enum PurchaseType
     [Description("Card Payment")]
     Card = 3,
     [Description("Both card and cash payments")]
-    Both = 4
+    Both = 4,
+    [Description("Other payment type not listed here")]
+    Other = 5
 }

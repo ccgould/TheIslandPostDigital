@@ -89,68 +89,231 @@
         </Border>
         <Grid Grid.Row="1" Margin="0,10,0,0">
             <ui:ProgressRing Grid.RowSpan="3" IsIndeterminate="True" Visibility="{Binding ViewModel.IsBusy, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}"/>
-            <ScrollViewer>
-                <ui:ListView ItemsSource="{Binding ViewModel.OrderService.PurchaseHistory}">
-                    <ui:ListView.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Margin="10,0">
-                                <Grid.ColumnDefinitions>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                <ScrollViewer>
+                    <ui:ListView ItemsSource="{Binding ViewModel.OrderService.PurchaseHistory}" SelectionChanged="ListView_SelectionChanged">
+                        <ui:ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="10,0">
+                                    <!--<Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>-->
+
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!--<Label Grid.Column="1" Content="{Binding Date}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.RowSpan="2"/>-->
+
+                                    <Grid Grid.Column="0" Background="#202020">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Orientation="Horizontal">
+                                            <Label Grid.Column="1" Content="{Binding Name}" FontSize="150" FontWeight="Bold" Margin="5"/>
+                                            <Separator Height="20"/>
+                                            <StackPanel Orientation="Horizontal" Margin="10,0">
+                                                <ui:SymbolIcon Symbol="Mail24" Margin="10,0" Foreground="{Binding IsFinalized, Converter={StaticResource MailBoolToColorConverter}, FallbackValue=Red}"/>
+                                                <Label Grid.Column="1" Content="{Binding Email}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Grid.Row="1" >
+                                                <ui:SymbolIcon Symbol="Image16" Margin="10,0"/>
+                                                <Label Grid.Column="1" Content="{Binding ApprovedImagesCount}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+
+                                            <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="3" Margin="10,0">
+                                                <ui:SymbolIcon Symbol="Print16"  Margin="10,0"/>
+                                                <Label Grid.Column="1" Content="{Binding ApprovedPrintsCount}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+
+                                            <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="3" Margin="10,0">
+                                                <ui:SymbolIcon Symbol="Video16"  Margin="10,0"/>
+                                                <Label Grid.Column="1" Content="{Binding VideoCount}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+
+                                            <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="3" Margin="10,0">
+                                                <ui:SymbolIcon Symbol="BuildingRetail20"  Margin="10,0"/>
+                                                <Label Grid.Column="1" Content="{Binding RetailCount}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <TextBlock Grid.Column="2" Text="{Binding Time,StringFormat={}{0:hh:mm tt}}" VerticalAlignment="Center" Margin="5"/>
+
+                                    </Grid>
+                                    <!--<ui:Button Grid.Column="2" Content="Send Email" Margin="30,10,10,10" VerticalAlignment="Center" Grid.RowSpan="2" Command="{Binding ElementName=ordersPage, Path=ViewModel.SendEmailCommand}" CommandParameter="{Binding .}" IsEnabled="{Binding IsFinalized, Converter={StaticResource InverseBooleanConverter}}"/>-->
+                                    <!--<ui:Button Grid.Column="3" Content="View Order" Margin="0,10,10,10" VerticalAlignment="Center" Grid.RowSpan="2" Command="{Binding ElementName=ordersPage, Path=ViewModel.OpenHistoryCommand}" CommandParameter="{Binding .}"/>-->
+
+                                    <Grid Grid.Row="1"  Background="#404040" Height="70">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="R000001" VerticalAlignment="Center" Margin="5"/>
+                                        <Separator  Grid.Column="1" Height="30"/>
+                                        <TextBlock Grid.Column="2" HorizontalAlignment="Left" Text="ccgould@yahoo.com" VerticalAlignment="Center" Margin="5"/>
+                                        <StackPanel Grid.Column="3" Orientation="Horizontal">
+                                            <ui:SymbolIcon Symbol="Money24" Margin="10,0" FontSize="25"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding CartTotal,StringFormat='{}{0:c}'}" FontWeight="Bold" VerticalAlignment="Center" Margin="5" FontSize="25"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Grid>
+                            </DataTemplate>
+                        </ui:ListView.ItemTemplate>
+                    </ui:ListView>
+                </ScrollViewer>
+                <Grid Background="#202020" Grid.Column="1" Margin="10,0,0,0">
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="200"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <ui:InfoBar Grid.Row="0" 
+                        Grid.ColumnSpan="2" 
+                        Title="Edit Mode" Message="You are currently in edit mode. Please press the edit button to exit edit mode." 
+                        IsOpen="True" 
+                        VerticalAlignment="Top" 
+                        IsClosable="False"/>
+
+                        <!--Customer Information-->
+                        <Grid Grid.Row="1" Grid.ColumnSpan="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Column="0" Grid.Row="3" 
+                           Text="Cashier:" 
+                           Margin="5" 
+                           DockPanel.Dock="Left" 
+                           VerticalAlignment="Center"
+                           Foreground="White"/>
+
+                            <TextBox Grid.Column="1"
+                        Grid.Row="5"
+                         Width="Auto" 
+                         Foreground="White" 
+                         IsEnabled="False"
+                         Text="{Binding ViewModel.Order.Employee.FullName,Mode=OneWay}" 
+                         Margin="5"
+                         IsReadOnly="True"/>
+
+
+                            <TextBlock Grid.Column="0" Grid.Row="2" 
+                           Text="Download URL:" 
+                           Margin="5" 
+                           DockPanel.Dock="Left" 
+                           VerticalAlignment="Center"
+                           Foreground="White"/>
+
+                            <Grid Grid.Column="1" Grid.Row="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
 
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
+                                <TextBox  
+                         Foreground="White" 
+                         Text="{Binding Order.ViewModel.DownloadURL, UpdateSourceTrigger=PropertyChanged}" 
+                         Margin="5"
+                         IsReadOnly="{Binding IsReadOnly}" Width="Auto"/>
 
-                                <!--<Label Grid.Column="1" Content="{Binding Date}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.RowSpan="2"/>-->
-                                <Label Grid.Column="0" Content="{Binding Name}" FontSize="150" FontWeight="Bold"/>
-                                <ui:Button Grid.Column="2" Content="Send Email" Margin="30,10,10,10" VerticalAlignment="Center" Grid.RowSpan="2" Command="{Binding ElementName=ordersPage, Path=ViewModel.SendEmailCommand}" CommandParameter="{Binding .}" IsEnabled="{Binding IsFinalized, Converter={StaticResource InverseBooleanConverter}}"/>
-                                <ui:Button Grid.Column="3" Content="View Order" Margin="0,10,10,10" VerticalAlignment="Center" Grid.RowSpan="2" Command="{Binding ElementName=ordersPage, Path=ViewModel.OpenHistoryCommand}" CommandParameter="{Binding .}"/>
-
-                                <StackPanel Orientation="Horizontal" Grid.ColumnSpan="3" Grid.Row="1">
-                                    <StackPanel Orientation="Horizontal" Grid.Row="1" >
-                                        <ui:SymbolIcon Symbol="Image16" Margin="10,0"/>
-                                        <Label Grid.Column="1" Content="{Binding ApprovedImagesCount}" VerticalAlignment="Center"/>
-                                    </StackPanel>
-
-                                    <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="3" Margin="10,0">
-                                        <ui:SymbolIcon Symbol="Print16"  Margin="10,0"/>
-                                        <Label Grid.Column="1" Content="{Binding ApprovedPrintsCount}" VerticalAlignment="Center"/>
-                                    </StackPanel>
-
-                                    <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="3" Margin="10,0">
-                                        <ui:SymbolIcon Symbol="Video16"  Margin="10,0"/>
-                                        <Label Grid.Column="1" Content="{Binding VideoCount}" VerticalAlignment="Center"/>
-                                    </StackPanel>
-
-                                    <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="3" Margin="10,0">
-                                        <ui:SymbolIcon Symbol="BuildingRetail20"  Margin="10,0"/>
-                                        <Label Grid.Column="1" Content="{Binding RetailCount}" VerticalAlignment="Center"/>
-                                    </StackPanel>
-
-                                    <ui:SymbolIcon Symbol="Mail24" Margin="10,0" Foreground="{Binding IsFinalized, Converter={StaticResource MailBoolToColorConverter}, FallbackValue=Red}"/>
-
-                                    <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="3" Margin="10,0">
-                                        <ui:SymbolIcon Symbol="Link16"  Margin="10,0"/>
-                                        <Label Grid.Column="1" Content="{Binding Email}" VerticalAlignment="Center"/>
-                                    </StackPanel>
-
-                                    <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="3" Margin="10,0">
-                                        <ui:SymbolIcon Symbol="CalendarArrowCounterclockwise20"  Margin="10,0" Foreground="Cyan"/>
-                                        <TextBlock Grid.Column="1" Text="{Binding Date,StringFormat={}{0:MMMM dd yyyy '@' hh:mm tt}}" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </StackPanel>
-
+                                <ui:Button Content="Resend" Grid.Column="1" Command="{Binding ResendEmailCommand}"/>
                             </Grid>
-                        </DataTemplate>
-                    </ui:ListView.ItemTemplate>
-                </ui:ListView>
 
-            </ScrollViewer>
+                            <TextBlock Grid.Column="0" 
+                           Grid.Row="1" 
+                           Text="Email"
+                           Margin="5" 
+                           DockPanel.Dock="Left" 
+                           VerticalAlignment="Center"
+                           Foreground="White"/>
+
+                            <TextBox Grid.Column="1" 
+                         Grid.Row="1" 
+                         Width="Auto" 
+                         Foreground="White" 
+                         Text="{Binding  ViewModel.Order.Email}" 
+                         Margin="5"
+                         IsReadOnly="{Binding IsReadOnly}"/>
+
+                        </Grid>
+
+                        <!--Approved Photos-->
+                        <Grid Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="4">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Approved Photos" Foreground="White"/>
+                            <Border Grid.Row="1"  CornerRadius="8" Margin="5">
+                                <ScrollViewer>
+                                    <ui:ListView  ItemsSource="{Binding OrderService.CurrentHistoryOrder.PurchaseHistoryItems}">
+                                        <ui:ListView.ItemTemplate>
+                                            <DataTemplate DataType="{x:Type List}">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Margin="8,4" Text="{Binding Name}"/>
+                                                    <Grid Grid.Column="1" HorizontalAlignment="Right" Margin="0,0,10,0">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <ui:SymbolIcon Symbol="Print24" Filled="True"/>
+                                                        <Label Content="{Binding PrintAmount}" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Grid>
+                                                    <ui:Button Content="Open" Grid.Column="2" Command="{Binding ElementName=orderHistoryEditorPage, Path=ViewModel.OpenCommand}" CommandParameter="{Binding .}"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ui:ListView.ItemTemplate>
+                                    </ui:ListView>
+                                </ScrollViewer>
+                            </Border>
+                        </Grid>
+
+                        <!--Done Button-->
+                        <ui:Button Content="Done"
+                       Grid.ColumnSpan="2"
+                       Grid.Row="3"
+                       HorizontalAlignment="Center"
+                       Background="#00bfc3"
+                       Width="300"
+                       Margin="20"
+                       Command="{Binding GoBackCommand}"/>
+
+                    </Grid>
+                </Grid>
+                </Grid>
         </Grid>
     </Grid>
 </Page>

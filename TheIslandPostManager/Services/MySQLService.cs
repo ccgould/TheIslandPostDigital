@@ -7,6 +7,7 @@ using System.Windows;
 using TheIslandPostManager.Models;
 using System.Security.Cryptography;
 using System.Windows.Automation;
+using System.Globalization;
 
 
 
@@ -38,32 +39,29 @@ public class MySQLService: IMySQLService
 
         try
         {
-            MySqlCommand command = new MySqlCommand("INSERT INTO `ipd_db`.`ipd_pendingorders` (`userID`, `thumbnail`,`name`, `date`, `pendingPath` , `photoCount`, `videoCount`, `selectedCount`, `printingCount`) VALUES (@userID, @thumbnail,@name, @date, @pendingPath,@photoCount, @videoCount, @selectedCount, @printingCount)", connection);
-            command.Parameters.AddWithValue("@userID", order.CustomerID);
+            MySqlCommand command = new MySqlCommand("INSERT INTO `ipd_db`.`ipd_pendingorders` (`orderID`, `thumbnail`,`name`, `date`, `pendingPath`) VALUES (@orderID, @thumbnail,@name, @date, @pendingPath)", connection);
+            command.Parameters.AddWithValue("@orderID", order.CustomerID);
             command.Parameters.AddWithValue("@thumbnail", order.CurrentImages.FirstOrDefault().ImageUrl);
             command.Parameters.AddWithValue("@name", order.Name);
             command.Parameters.AddWithValue("@date", order.Date.ToString(MYSQL_DATE_FORMAT));
             command.Parameters.AddWithValue("@pendingPath", order.DownloadURL);
-            command.Parameters.AddWithValue("@photoCount", order.CurrentImages.Count);
-            command.Parameters.AddWithValue("@videoCount", order.VideoCount);
-            command.Parameters.AddWithValue("@selectedCount", order.ApprovedImagesCount);
-            command.Parameters.AddWithValue("@printingCount", order.ApprovedPrintsCount);
             command.ExecuteNonQuery();
+
+            var orderID = command.LastInsertedId;
 
 
             if (order.CurrentImages?.Any() ?? false)
             {
                 foreach (var image in order.CurrentImages)
                 {
-                    MySqlCommand command1 = new MySqlCommand("INSERT INTO `ipd_db`.`ipd_pendingimages` (`userID`, `name`, `imageURL`, `isSelected`, `isPending`, `isPrinting`, `height`, `width`, `printAmount`) VALUES (@userID, @name, @imageURL, @isSelected, @isPending, @isPrinting, @height, @width, @printAmount)", connection);
-                    command1.Parameters.AddWithValue("@userID", order.CustomerID);
+                    MySqlCommand command1 = new MySqlCommand("INSERT INTO `ipd_db`.`ipd_pendingimages` (`pendingOrderID`,`orderID`, `name`, `imageURL`, `isSelected`, `isPending`, `isPrinting`,`printAmount`) VALUES (@pendingOrderID,@orderID, @name, @imageURL, @isSelected, @isPending, @isPrinting,@printAmount)", connection);
+                    command1.Parameters.AddWithValue("@pendingOrderID", orderID);
+                    command1.Parameters.AddWithValue("@orderID", order.CustomerID);
                     command1.Parameters.AddWithValue("@name", image.Name);
                     command1.Parameters.AddWithValue("@imageURL", image.ImageUrl.Replace("\\", "\\\\"));
                     command1.Parameters.AddWithValue("@isSelected", image.IsSelected);
                     command1.Parameters.AddWithValue("@isPending", image.IsPending);
                     command1.Parameters.AddWithValue("@isPrinting", image.IsPrintable);
-                    command1.Parameters.AddWithValue("@height", 0);
-                    command1.Parameters.AddWithValue("@width", 0);
                     command1.Parameters.AddWithValue("@printAmount", image.PrintAmount);
 
                     command1.ExecuteNonQuery();
@@ -105,8 +103,8 @@ public class MySQLService: IMySQLService
         MySqlConnection connection = await OpenConnection();
         try
         {
-            MySqlCommand command = new MySqlCommand("DELETE FROM ipd_pendingorders WHERE userID=@userID", connection);
-            command.Parameters.AddWithValue("@userID", pendingOrderID.CustomerID);
+            MySqlCommand command = new MySqlCommand("DELETE FROM ipd_pendingorders WHERE id=@id", connection);
+            command.Parameters.AddWithValue("@id", pendingOrderID.ID);
             command.ExecuteNonQuery();
         }
         catch (Exception ex)
@@ -138,7 +136,8 @@ public class MySQLService: IMySQLService
                     {
                         Order slip = new Order(0)
                         {
-                            CustomerID = reader.GetString("userID"),
+                            ID = reader.GetInt32("id"),
+                            CustomerID = reader.GetString("orderID"),
                             Thumbnail = new ImageObj(reader.GetString("thumbnail")).LowImage,
                             Name = reader.GetString("name"),
                             DownloadURL = reader.GetString("pendingPath"),
@@ -165,7 +164,7 @@ public class MySQLService: IMySQLService
         return new();
     }
 
-    public async Task<ObservableCollection<PurchaseItem>> GetStoreItems(bool retailOnly = false)
+    public async Task<ObservableCollection<PurchaseItem>> GetProducts(bool retailOnly = false)
     {
         MySqlConnection connection = await OpenConnection();
 
@@ -174,7 +173,7 @@ public class MySQLService: IMySQLService
         {
             ObservableCollection<PurchaseItem> returnThese = new ObservableCollection<PurchaseItem>();
 
-            MySqlCommand command = new MySqlCommand("SELECT * FROM ipd_storeitems WHERE parent = -1", connection);
+            MySqlCommand command = new MySqlCommand("SELECT * FROM ipd_products WHERE parent = -1", connection);
             command.Parameters.AddWithValue("@isRetail", retailOnly);
 
             using (MySqlDataReader reader = command.ExecuteReader())
@@ -182,7 +181,7 @@ public class MySQLService: IMySQLService
                 while (reader.Read())
                 {
 
-                    var item = new PurchaseItem(reader.GetInt32("id"),
+                    var item = new PurchaseItem(reader.GetInt32("product_id"),
                         reader.GetString("description"),
                         reader.GetString("data"),
                         reader.GetDecimal("price"),
@@ -196,14 +195,14 @@ public class MySQLService: IMySQLService
 
             foreach (var item in returnThese)
             {
-                MySqlCommand command1 = new MySqlCommand("SELECT * FROM ipd_storeitems WHERE parent = @id", connection);
+                MySqlCommand command1 = new MySqlCommand("SELECT * FROM ipd_products WHERE parent = @id", connection);
                 command1.Parameters.AddWithValue("@id", item.ID);
 
                 using (MySqlDataReader reader1 = command1.ExecuteReader())
                 {
                     while (reader1.Read())
                     {
-                        var child = new PurchaseItem(reader1.GetInt32("id"),
+                        var child = new PurchaseItem(reader1.GetInt32("product_id"),
                         reader1.GetString("description"),
                         reader1.GetString("data"),
                         reader1.GetDecimal("price"),
@@ -249,40 +248,44 @@ public class MySQLService: IMySQLService
 
             var stime = startTime.ToString("yyyy-MM-dd");
             var edTime = endTime.ToString("yyyy-MM-dd");
-            var f = $"%{searchText?.Trim()}%";
 
-            //MySqlCommand command = new MySqlCommand("SELECT * FROM  ipd_orders WHERE (date >= @startDate AND date <= @endDate) AND name LIKE @searchText OR email LIKE @searchText ORDER BY date ASC;", connection);
-            MySqlCommand command = new MySqlCommand("SELECT * FROM ipd_orders WHERE (name LIKE @searchText OR email LIKE @searchText) AND (date >= @startDate AND date <= @endDate);", connection);
+            string orderID = $"%{searchText?.Trim()}%";
+       
+            //MySqlCommand command = new MySqlCommand("SELECT * FROM  ipd_invoices WHERE (date >= @startDate AND date <= @endDate) AND name LIKE @searchText OR email LIKE @searchText ORDER BY date ASC;", connection);
+            MySqlCommand command = new MySqlCommand("SELECT * FROM ipd_invoices WHERE (invoice_id LIKE @searchText) AND (date >= @startDate AND date <= @endDate);", connection);
 
             command.Parameters.AddWithValue("@startDate", stime);
             command.Parameters.AddWithValue("@endDate", edTime);
-            command.Parameters.AddWithValue("@searchText", f);
-            command.Parameters.AddWithValue("@employeeID", clerkName);
+            command.Parameters.AddWithValue("@searchText", orderID);
 
             using (var reader = await command.ExecuteReaderAsync())
             {
                 while (await reader.ReadAsync())
                 {
-
-
                     Order slip = new Order(0)
                     {
-                        EmployeeID = reader.GetInt32("employeeid"),
-                        CustomerID = reader.GetString("userID"),
-                        Name = reader.GetString("name"),
+                        ID = reader.GetInt32("invoice_id"),
+                        EmployeeID = reader.GetInt32("employee_id"),
+                        CustomerID = reader.GetString("customer_id"),
                         Date = reader.GetDateTime("date"),
-                        Email = reader.GetString("email"),
+                        Time = DateTime.ParseExact(reader.GetString("time"), "HH:mm:ss", CultureInfo.InvariantCulture),
+                        Name = $"Order {reader.GetInt32("invoice_id")}",
                         DownloadURL = reader.IsDBNull("downloadURL") ? string.Empty : reader.GetString("downloadURL"),
+                        /*
+                         Email = reader.GetString("email"),
+                        Name = reader.GetString("name"),
                         ApprovedImagesCount = reader.GetInt32("photoCount"),
                         ApprovedPrintsCount = reader.GetInt32("printCount"),
                         VideoCount = reader.GetInt32("videoCount"),
+                        OrderPath = reader.IsDBNull("path") ? string.Empty : reader.GetString("path"),*/
                         IsFinalized = reader.GetBoolean("hasEmailBeenSent"),
-                        OrderPath = reader.IsDBNull("path") ? string.Empty : reader.GetString("path"),
-                        RetailCount = await GetRetailCount(reader.GetString("userID")),
-                        Employee = GetEmployees().Result?.FirstOrDefault(x => x.EmployeeID == reader.GetInt32("employeeid"))
+                        RetailCount = await GetRetailCount(reader.GetInt32("invoice_id")),
+                        Employee = GetEmployees().Result?.FirstOrDefault(x => x.EmployeeID == reader.GetInt32("employee_id")),
+                        CartTotal = reader.GetDecimal("total_amount")
+
                     };
 
-                    //command.Parameters.AddWithValue("@employeeID", order.EmployeeID);
+                    //command.Parameters.AddWithValue("@employee_id", order.EmployeeID);
                     //command.Parameters.AddWithValue("@photoCount", order.ApprovedImagesCount);
                     //command.Parameters.AddWithValue("@videoCount", 0);
                     //command.Parameters.AddWithValue("@printCount", order.ApprovedPrintsCount);
@@ -312,7 +315,7 @@ public class MySQLService: IMySQLService
         return new();
     }
 
-    private async Task<int> GetRetailCount(string customerID)
+    private async Task<int> GetRetailCount(int orderID)
     {
         MySqlConnection connection = await OpenConnection();
 
@@ -324,9 +327,9 @@ public class MySQLService: IMySQLService
             if (connection is null) return new();
 
 
-            MySqlCommand command = new MySqlCommand("SELECT * FROM ipd_retailpurchases WHERE customerID = @customerID", connection);
+            MySqlCommand command = new MySqlCommand("SELECT * FROM ipd_retailpurchases WHERE orderID = @orderID", connection);
 
-            command.Parameters.AddWithValue("@customerID", customerID);
+            command.Parameters.AddWithValue("@orderID", orderID);
 
             using (var reader = await command.ExecuteReaderAsync())
             {
@@ -351,7 +354,7 @@ public class MySQLService: IMySQLService
         return 0;
     }
 
-    public async Task<Tuple<ObservableCollection<ImageObj>, List<IImage>, List<IImage>>?> LoadImages(string customerID)
+    public async Task<Tuple<ObservableCollection<ImageObj>, List<IImage>, List<IImage>>?> LoadImages(string customer_id)
     {
         MySqlConnection connection = await OpenConnection();
         var currentImages = new ObservableCollection<ImageObj>();
@@ -361,7 +364,7 @@ public class MySQLService: IMySQLService
         try
         {
             MySqlCommand command = new MySqlCommand("SELECT * FROM ipd_pendingimages WHERE userID=@userID", connection);
-            command.Parameters.AddWithValue("@userID", customerID);
+            command.Parameters.AddWithValue("@userID", customer_id);
             using (MySqlDataReader reader = command.ExecuteReader())
             {
                 while (await reader.ReadAsync())
@@ -412,8 +415,8 @@ public class MySQLService: IMySQLService
             foreach (var order in orders)
             {
 
-                MySqlCommand command = new MySqlCommand("SELECT * FROM ipd_orderimages WHERE customerID=@customerID", connection);
-                command.Parameters.AddWithValue("@customerID", order.CustomerID);
+                MySqlCommand command = new MySqlCommand("SELECT * FROM ipd_orderimages WHERE orderID=@orderID", connection);
+                command.Parameters.AddWithValue("@orderID", order.CustomerID);
 
                 using (var reader = await command.ExecuteReaderAsync())
                 {
@@ -429,8 +432,8 @@ public class MySQLService: IMySQLService
                 }
 
                 //TODO Reenable
-                //MySqlCommand command2 = new MySqlCommand("SELECT * FROM ipd_retailPurchases WHERE customerID=@userID", connection);
-                //command2.Parameters.AddWithValue("@userID", order.CustomerID);
+                //MySqlCommand command2 = new MySqlCommand("SELECT * FROM ipd_retailPurchases WHERE customer_id=@userID", connection);
+                //command2.Parameters.AddWithValue("@userID", order.customer_id);
 
                 //using (var reader = await command2.ExecuteReaderAsync())
                 //{
@@ -462,8 +465,8 @@ public class MySQLService: IMySQLService
         {
             foreach (var order in orders)
             {
-                MySqlCommand command = new MySqlCommand("SELECT * FROM ipd_orderimages WHERE userID=@userID", connection);
-                command.Parameters.AddWithValue("@userID", order.CustomerID);
+                MySqlCommand command = new MySqlCommand("SELECT * FROM ipd_orderimages WHERE orderID=@orderID", connection);
+                command.Parameters.AddWithValue("@orderID", order.ID);
                 
                 using (var reader = await command.ExecuteReaderAsync())
                 {
@@ -515,53 +518,56 @@ public class MySQLService: IMySQLService
 
         try
         {
-            MySqlCommand command = new MySqlCommand("INSERT INTO `ipd_db`.`ipd_orders` (`userID`,`employeeID`,`photoCount`,`videoCount`,`printCount`,`email`,`name`,`hasEmailBeenSent`,`date`,`time`,`path`,`downloadURL`,`saleAmount`,`cashType`) VALUES (@userID,@employeeID, @photoCount, @videoCount, @printCount, @email, @name,@hasEmailBeenSent,@date,@time,@path,@downloadURL,@saleAmount,@cashType)", connection);
-            command.Parameters.AddWithValue("@userID", order.CustomerID);
-            command.Parameters.AddWithValue("@employeeID", order.EmployeeID);
-            command.Parameters.AddWithValue("@photoCount", order.ApprovedImagesCount);
-            command.Parameters.AddWithValue("@videoCount", order.VideoCount);
-            command.Parameters.AddWithValue("@printCount", order.PrintingCount);
-            command.Parameters.AddWithValue("@email", order.Email);
-            command.Parameters.AddWithValue("@name", order.Name);
+            MySqlCommand command = new MySqlCommand("INSERT INTO `ipd_db`.`ipd_invoices` (`invoice_id`,`customer_id`,`employee_id`,`hasEmailBeenSent`,`date`,`time`,`downloadURL`,`cashType`,`saleTotal`) VALUES (@invoice_id,@customer_id,@employee_id,@hasEmailBeenSent,@date,@time,@downloadURL,@cashType,@saleTotal)", connection);
+            command.Parameters.AddWithValue("@invoice_id", order.ID);
+            command.Parameters.AddWithValue("@customer_id", order.CustomerID);
+            command.Parameters.AddWithValue("@employee_id", order.EmployeeID);
             command.Parameters.AddWithValue("@hasEmailBeenSent", order.IsFinalized);
             command.Parameters.AddWithValue("@date", order.Date.ToString(MYSQL_DATE_FORMAT));
             command.Parameters.AddWithValue("@time", order.Date.ToString(MYSQL_TIME_FORMAT));
-            command.Parameters.AddWithValue("@path", order.OrderPath);
             command.Parameters.AddWithValue("@downloadURL", order.DownloadURL);
-            command.Parameters.AddWithValue("@saleAmount", order.CartTotal);
             command.Parameters.AddWithValue("@cashType", order.SelectedPurchaseType);
+            command.Parameters.AddWithValue("@saleTotal", order.CartTotal);
 
             command.ExecuteNonQuery();
 
+
+            var orderID = command.LastInsertedId;
 
             if (order.ApprovedImages?.Any() ?? false)
             {
                 foreach (var image in order.ApprovedImages)
                 {
-                    MySqlCommand command1 = new MySqlCommand("INSERT INTO `ipd_db`.`ipd_orderimages` (`userID`, `name`, `imageURL`, `isSelected`, `isPending`, `isPrinting`, `height`, `width`, `printAmount`) VALUES (@userID, @name, @imageURL, @isSelected, @isPending, @isPrinting, @height, @width, @printAmount)", connection);
-                    command1.Parameters.AddWithValue("@userID", order.CustomerID);
+                    MySqlCommand command1 = new MySqlCommand("INSERT INTO `ipd_db`.`ipd_orderimages` (`orderID`, `name`, `imageURL`,`printAmount`) VALUES (@orderID, @name, @imageURL, @printAmount)", connection);
+                    command1.Parameters.AddWithValue("@orderID", orderID);
                     command1.Parameters.AddWithValue("@name", image.Name);
                     command1.Parameters.AddWithValue("@imageURL", image.ImageUrl.Replace("\\", "\\\\"));
-                    command1.Parameters.AddWithValue("@isSelected", image.IsSelected);
-                    command1.Parameters.AddWithValue("@isPending", image.IsPending);
-                    command1.Parameters.AddWithValue("@isPrinting", image.IsPrintable);
-                    command1.Parameters.AddWithValue("@height", 0);
-                    command1.Parameters.AddWithValue("@width", 0);
                     command1.Parameters.AddWithValue("@printAmount", image.PrintAmount);
                     command1.ExecuteNonQuery();
                 }
             }
 
+            foreach (var cartItem in order.Cart)
+            {
+                MySqlCommand command2 = new MySqlCommand("INSERT INTO `ipd_db`.`ipd_sales` (`invoice_id`, `product_id`,`quantity`,`unit_price`,`sub_total`) VALUES (@invoice_id, @product_id,@quantity,@unit_price,@sub_total)", connection);
+                command2.Parameters.AddWithValue("@invoice_id", orderID);
+                command2.Parameters.AddWithValue("@product_id", cartItem.ID);
+                command2.Parameters.AddWithValue("@quantity", cartItem.Amount);
+                command2.Parameters.AddWithValue("@unit_price", cartItem.Cost);
+                command2.Parameters.AddWithValue("@sub_total", cartItem.TotalCost);
+                command2.ExecuteNonQuery();
+            }
 
-
+            /* Removing due to ipd_sales 
             foreach (var cartItem in order.Cart.Where(x => x.IsRetailItem))
             {
-                MySqlCommand command1 = new MySqlCommand("INSERT INTO `ipd_db`.`ipd_retailpurchases` (`customerID`, `itemID`,`amount`) VALUES (@customerID, @itemID,@amount)", connection);
-                command1.Parameters.AddWithValue("@customerID", order.CustomerID);
-                command1.Parameters.AddWithValue("@itemID", cartItem.Data);
+                MySqlCommand command1 = new MySqlCommand("INSERT INTO `ipd_db`.`ipd_retailpurchases` (`orderID`, `itemID`,`amount`) VALUES (@orderID, @itemID,@amount)", connection);
+                command1.Parameters.AddWithValue("@orderID", orderID);
+                command1.Parameters.AddWithValue("@itemID", cartItem.ID);
                 command1.Parameters.AddWithValue("@amount", cartItem.Amount);
                 command1.ExecuteNonQuery();
             }
+            */
 
             messageService.ShowSnackBarMessage("Order", "Order Saved Successfully");
         }
@@ -581,7 +587,7 @@ public class MySQLService: IMySQLService
         try
         {
 
-            MySqlCommand command = new MySqlCommand("UPDATE ipd_orders SET photoCount= @photoCount, videoCount = @videoCount, printCount = @printCount, email = @email, name = @name,hasEmailBeenSent = @hasEmailBeenSent,date = @date,downloadURL = @downloadURL WHERE userID=@userID", connection);
+            MySqlCommand command = new MySqlCommand("UPDATE ipd_invoices SET photoCount= @photoCount, videoCount = @videoCount, printCount = @printCount, email = @email, name = @name,hasEmailBeenSent = @hasEmailBeenSent,date = @date,downloadURL = @downloadURL WHERE userID=@userID", connection);
 
             command.Parameters.AddWithValue("@userID", order.CustomerID);
             command.Parameters.AddWithValue("@photoCount", order.ApprovedImagesCount);
@@ -628,7 +634,7 @@ public class MySQLService: IMySQLService
                 {
                     Employee employee = new Employee()
                     {
-                        EmployeeID = reader.GetInt32("employeeID"),
+                        EmployeeID = reader.GetInt32("employee_ID"),
                         FirstName = reader.GetString("firstName"),
                         LastName = reader.GetString("lastName"),
                         IsTerminated = reader.GetBoolean("isTerminated"),   
@@ -662,8 +668,8 @@ public class MySQLService: IMySQLService
         {
             ObservableCollection<Employee> returnThese = new();
 
-            MySqlCommand command = new MySqlCommand("SELECT * FROM ipd_employees WHERE employeeID = @employeeID", connection);
-            command.Parameters.AddWithValue("@employeeID", id);
+            MySqlCommand command = new MySqlCommand("SELECT * FROM ipd_employees WHERE employee_id = @employee_id", connection);
+            command.Parameters.AddWithValue("@employee_id", id);
 
             using (MySqlDataReader reader = command.ExecuteReader())
             {
@@ -725,18 +731,18 @@ public class MySQLService: IMySQLService
             switch (transactionType)
             {
                 case ViewModels.EarningsPageViewmodel.TransactionType.Total:
-                    command = new MySqlCommand("SELECT SUM(saleAmount) AS TotalItemsOrdered FROM ipd_orders WHERE DATE = @date", connection);
+                    command = new MySqlCommand("SELECT SUM(saleTotal) AS TotalItemsOrdered FROM ipd_invoices WHERE DATE = @date", connection);
                     break;
                 case ViewModels.EarningsPageViewmodel.TransactionType.Cash:
                 case ViewModels.EarningsPageViewmodel.TransactionType.Card:
                 case ViewModels.EarningsPageViewmodel.TransactionType.Both:
-                    command = new MySqlCommand("SELECT SUM(saleAmount) AS TotalItemsOrdered FROM ipd_orders WHERE DATE = @date AND cashType = @cashType", connection);
+                    command = new MySqlCommand("SELECT SUM(saleTotal) AS TotalItemsOrdered FROM ipd_invoices WHERE DATE = @date AND cashType = @cashType", connection);
                     break;
             }
 
             if (command is null)
             {
-                await messageService.ShowErrorMessage("Error",$"Command returned null when trying to get the transactiom total {transactionType}");
+                await messageService.ShowErrorMessage("Error",$"Command returned null when trying to get the transaction total {transactionType}");
                 return amount;
             }
 
@@ -775,7 +781,7 @@ public interface IMySQLService
     Task<ObservableCollection<Employee>> GetEmployees(bool getAdminOnly = false);
     Task<ObservableCollection<Order>> GetPendingOrders();
     Task<ObservableCollection<Order>> GetPurchaseHistory(DateTime startTime, DateTime endTime, string searchText, string clerkName);
-    Task<ObservableCollection<PurchaseItem>> GetStoreItems(bool retailOnly = false);
+    Task<ObservableCollection<PurchaseItem>> GetProducts(bool retailOnly = false);
     Task<double> GetTodaysTotal(DateTime date, ViewModels.EarningsPageViewmodel.TransactionType transactionType);
     Task<Tuple<ObservableCollection<ImageObj>, List<IImage>, List<IImage>>?> LoadImages(string id);
     Task RemovePendingOrder(Order order);

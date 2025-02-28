@@ -6,6 +6,7 @@
       xmlns:local="clr-namespace:TheIslandPostManager.Views.Pages"
       xmlns:controls="clr-namespace:TheIslandPostManager.Controls"
       controls:ImagesControlModule.Show="False"
+      ScrollViewer.CanContentScroll="False"
       mc:Ignorable="d"
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
       d:DesignHeight="450" d:DesignWidth="800"
@@ -29,33 +30,26 @@
                 <Grid Height="40" Margin="20,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="300"/>
                         <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="500"/>
+                        <!--<ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>-->
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Grid.Column="0" Text="Cashier:" VerticalAlignment="Center" Margin="10,0" Foreground="White"/>
                     <ComboBox  IsTabStop="False" Grid.Column="1" SelectedIndex="{Binding OrderService.CurrentOrder.Employee.EmployeeID}"  x:Name="ClerkCmbox" ItemsSource="{Binding Employees}" DisplayMemberPath="FirstName" SelectedItem="{Binding Employee,Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                     </ComboBox>
-                    <TextBlock Grid.Column="2" Text="Passenger Name:" VerticalAlignment="Center" Margin="10,0" Foreground="White"/>
-                    <ui:TextBox  IsTabStop="True" Grid.Column="3"  FontSize="14" x:Name="PassengerNameTxtb" Text="{Binding OrderService.CurrentOrder.Name, UpdateSourceTrigger=PropertyChanged}"/>
-
-                    <TextBlock Grid.Column="4" Text="Passenger Email:" VerticalAlignment="Center" Margin="10,0" Foreground="White"/>
-                    <ui:TextBox  IsTabStop="True" Grid.Column="5"  x:Name="PassengerEmailTxtb" Text="{Binding OrderService.CurrentOrder.Email, UpdateSourceTrigger=PropertyChanged}"/>
-
-                    <TextBlock Grid.Column="6" Text="Cash Type:" VerticalAlignment="Center" Margin="10,0" Foreground="White"/>
-                    <ComboBox  IsTabStop="False" Grid.Column="7"  x:Name="CashTypeCmbox" SelectedItem="{Binding OrderService.CurrentOrder.SelectedPurchaseType}" ItemsSource="{Binding OrderService.CurrentOrder.PurchaseTypeValues}">
-                    </ComboBox>
+                    
+                    <TextBlock Grid.Column="2" Text="Passenger Email:" VerticalAlignment="Center" Margin="10,0" Foreground="White"/>
+                    <ui:TextBox  IsTabStop="True" Grid.Column="3"  x:Name="PassengerEmailTxtb" Text="{Binding OrderService.CurrentOrder.Email, UpdateSourceTrigger=PropertyChanged}"/>
                 </Grid>
             </Border>
 
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
@@ -95,103 +89,266 @@
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                     </ItemsControl>
-                </ScrollViewer
-                          >
+                </ScrollViewer>
 
-                <ScrollViewer Grid.Column="1" Width="500">
-                    <Border CornerRadius="8" Background="#AE2d3436" Padding="30">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="30"/>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="30"/>
-                            </Grid.RowDefinitions>
+                <Border Grid.Column="1" Width="500" CornerRadius="8" Background="#AE2d3436" Padding="30">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="110"/>
 
-                            <Border Background="Gray">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="Purchases" FontWeight="DemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="White"/>
-                                    <StackPanel Orientation="Horizontal" Grid.Column="1">
-                                        <StackPanel Orientation="Horizontal">
-                                            <ui:SymbolIcon ToolTip="Images Count" Symbol="Image16" FontSize="20" Filled="True" Foreground="White"/>
-                                            <TextBlock ToolTip="Images Count" Text="{Binding OrderService.CurrentOrder.ApprovedImagesCount}" FontWeight="DemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="White"/>
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal" Margin="10,0">
-                                            <ui:SymbolIcon ToolTip="Prints Count" Symbol="Print16" FontSize="20" Filled="True" Foreground="White"/>
-                                            <TextBlock ToolTip="Prints Count" Text="{Binding PrintCount}" FontWeight="DemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="White"/>
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal" Margin="10,0">
-                                            <ui:SymbolIcon ToolTip="Retail Count" Symbol="BuildingRetail24" FontSize="20" Filled="True" Foreground="White"/>
-                                            <TextBlock ToolTip="Retail Count" Text="{Binding PrintCount}" FontWeight="DemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="White"/>
-                                        </StackPanel>
+                        </Grid.RowDefinitions>
+
+                        <Border Background="Gray">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Purchases" FontWeight="DemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="White"/>
+                                <StackPanel Orientation="Horizontal" Grid.Column="1">
+                                    <StackPanel Orientation="Horizontal">
+                                        <ui:SymbolIcon ToolTip="Images Count" Symbol="Image16" FontSize="20" Filled="True" Foreground="White"/>
+                                        <TextBlock ToolTip="Images Count" Text="{Binding OrderService.CurrentOrder.ApprovedImagesCount}" FontWeight="DemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="White"/>
                                     </StackPanel>
-                                </Grid>
-                            </Border>
+                                    <StackPanel Orientation="Horizontal" Margin="10,0">
+                                        <ui:SymbolIcon ToolTip="Prints Count" Symbol="Print16" FontSize="20" Filled="True" Foreground="White"/>
+                                        <TextBlock ToolTip="Prints Count" Text="{Binding PrintCount}" FontWeight="DemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="White"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="10,0">
+                                        <ui:SymbolIcon ToolTip="Retail Count" Symbol="BuildingRetail24" FontSize="20" Filled="True" Foreground="White"/>
+                                        <TextBlock ToolTip="Retail Count" Text="{Binding PrintCount}" FontWeight="DemiBold" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="White"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
 
-                            <ui:ListView x:Name="Cart" IsTabStop="False" Grid.Row="1" ItemsSource="{Binding OrderService.CurrentOrder.Cart}">
-                                <ui:ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="3"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
+                        <ui:ListView x:Name="Cart" IsTabStop="False" Grid.Row="1" ItemsSource="{Binding OrderService.CurrentOrder.Cart}">
+                            <ui:ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="3"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
 
-                                            <ui:Flyout
+                                        <ui:Flyout
                                             Grid.Row="0"
                                             IsOpen="{Binding IsFlyoutOpen, Mode=TwoWay}"
                                             Placement="Top"
                                             Closed="Flyout_Closed">
-                                                <StackPanel>
-                                                    <TextBlock Text="Amount: " Foreground="White"/>
-                                                    <ui:NumberBox Value="{Binding Amount}"  Margin="0,10" ClearButtonEnabled="False" Minimum="1"/>
-                                                </StackPanel>
-                                            </ui:Flyout>
-                                            <Border Background="White"/>
-                                            <TextBlock Text="{Binding Amount}" Grid.Column="1" Margin="20,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="White"/>
-                                            <TextBlock Text="{Binding Description}" Grid.Column="2" Margin="20,0,0,0" VerticalAlignment="Center" Foreground="White"/>
-                                            <TextBlock Text="{Binding TotalCost}" Grid.Column="3" VerticalAlignment="Center" Foreground="White"/>
-                                            <ui:Button IsTabStop="False" Grid.Column="4" ToolTip="Change Quantity" Command="{Binding ViewModel.ChangeQuantityCommand, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Page}}" CommandParameter="{Binding .}" Margin="10,0" Foreground="White">
-                                                <ui:SymbolIcon Symbol="StoreMicrosoft16" FontSize="18"/>
-                                            </ui:Button>
-                                            <ui:Button IsTabStop="False" Grid.Column="5" ToolTip="Delete" Command="{Binding ViewModel.DeleteCommand, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Page}}" CommandParameter="{Binding .}" Appearance="Primary" Foreground="White">
-                                                <ui:SymbolIcon Symbol="Delete12" FontSize="18"/>
-                                            </ui:Button>
-                                        </Grid>
-                                    </DataTemplate>
-                                </ui:ListView.ItemTemplate>
-                            </ui:ListView>
+                                            <StackPanel>
+                                                <TextBlock Text="Amount: " Foreground="White"/>
+                                                <ui:NumberBox Value="{Binding Amount}"  Margin="0,10" ClearButtonEnabled="False" Minimum="1"/>
+                                            </StackPanel>
+                                        </ui:Flyout>
+                                        <Border Background="White"/>
+                                        <TextBlock Text="{Binding Amount}" Grid.Column="1" Margin="20,0,0,0" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="White"/>
+                                        <TextBlock Text="{Binding Description}" Grid.Column="2" Margin="20,0,0,0" VerticalAlignment="Center" Foreground="White"/>
+                                        <TextBlock Text="{Binding TotalCost}" Grid.Column="3" VerticalAlignment="Center" Foreground="White"/>
+                                        <ui:Button IsTabStop="False" Grid.Column="4" ToolTip="Change Quantity" Command="{Binding ViewModel.ChangeQuantityCommand, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Page}}" CommandParameter="{Binding .}" Margin="10,0" Foreground="White">
+                                            <ui:SymbolIcon Symbol="StoreMicrosoft16" FontSize="18"/>
+                                        </ui:Button>
+                                        <ui:Button IsTabStop="False" Grid.Column="5" ToolTip="Delete" Command="{Binding ViewModel.DeleteCommand, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Page}}" CommandParameter="{Binding .}" Appearance="Primary" Foreground="White">
+                                            <ui:SymbolIcon Symbol="Delete12" FontSize="18"/>
+                                        </ui:Button>
+                                    </Grid>
+                                </DataTemplate>
+                            </ui:ListView.ItemTemplate>
+                        </ui:ListView>
 
-                            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,5,10" Grid.Row="2">
+                        <TextBlock VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,5,10" Grid.Row="2">
                             <Run Text="10.00%: " Foreground="White"/>
                             <Run Text="{Binding OrderService.CurrentOrder.VatTotal}" Foreground="White"/>
                             <Run Text="{Binding OrderService.CurrentOrder.CartTotal,StringFormat=({0})}" Foreground="White"/>
-                            </TextBlock>
+                        </TextBlock>
 
-                            <Border Background="Gray" Grid.Row="3">
-                                <Grid Margin="10,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
+                        <Border Background="Gray" Grid.Row="3">
+                            <Grid Margin="10,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
 
-                                    <TextBlock Text="{Binding OrderService.CurrentOrder.Date}"   VerticalAlignment="Center" Margin="10,0,0,0" HorizontalAlignment="Left" Foreground="White"/>
+                                <TextBlock Text="{Binding OrderService.CurrentOrder.Date}"   VerticalAlignment="Center" Margin="10,0,0,0" HorizontalAlignment="Left" Foreground="White"/>
 
-                                    <TextBlock Grid.Column="1" Text="{Binding OrderService.CurrentOrder.CartTotal}" FontWeight="DemiBold" VerticalAlignment="Center" Margin="10,0,0,0" HorizontalAlignment="Right" Foreground="White"/>
+                                <TextBlock Grid.Column="1" Text="{Binding OrderService.CurrentOrder.CartTotal}" FontWeight="DemiBold" VerticalAlignment="Center" Margin="10,0,0,0" HorizontalAlignment="Right" Foreground="White"/>
 
+                            </Grid>
+                        </Border>
+
+                        <Grid Grid.Row="4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border CornerRadius="5" Height="100" Width="100" Background="{ui:ThemeResource ControlFillColorDefaultBrush}" Padding="5">
+                                <Border.InputBindings>
+                                    <MouseBinding MouseAction="LeftClick" Command="{Binding TransactionClickCommand}" CommandParameter="CASH"/>
+                                </Border.InputBindings>
+                                <Grid>
+                                    <TextBlock Text="{Binding Amount}"  Visibility="{Binding AmountVisible}" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.RowSpan="2" FontSize="100" FontWeight="Bold" Opacity=".2" Foreground="White"/>
+                                    <TextBlock Text="CASH" 
+                                               TextWrapping="Wrap" 
+                                               FontSize="20" 
+                                               Foreground="White" 
+                                               Opacity=".5" 
+                                               HorizontalAlignment="Center" 
+                                               VerticalAlignment="Center"
+                                               />
                                 </Grid>
                             </Border>
+
+                            <Border Grid.Column="1" CornerRadius="5" Height="100" Width="100" Background="{ui:ThemeResource ControlFillColorDefaultBrush}" Padding="5">
+                                <Border.InputBindings>
+                                    <MouseBinding MouseAction="LeftClick" Command="{Binding TransactionClickCommand}" CommandParameter="CARD"/>
+                                </Border.InputBindings>
+                                <Grid>
+                                    <TextBlock Text="{Binding Amount}"  Visibility="{Binding AmountVisible}" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.RowSpan="2" FontSize="100" FontWeight="Bold" Opacity=".2" Foreground="White"/>
+                                    <TextBlock Text="CARD" 
+                                               TextWrapping="Wrap" 
+                                               FontSize="20" 
+                                               Foreground="White" 
+                                               Opacity=".5" 
+                                               HorizontalAlignment="Center" 
+                                               VerticalAlignment="Center"
+                                               />
+                                </Grid>
+                            </Border>
+
+                            <Border Grid.Column="2" CornerRadius="5" Height="100" Width="100" Background="{ui:ThemeResource ControlFillColorDefaultBrush}" Padding="5">
+                                <Border.InputBindings>
+                                    <MouseBinding MouseAction="LeftClick" Command="{Binding TransactionClickCommand}" CommandParameter="OTHER"/>
+                                </Border.InputBindings>
+                                <Grid>
+                                    <TextBlock Text="{Binding Amount}"  Visibility="{Binding AmountVisible}" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.RowSpan="2" FontSize="100" FontWeight="Bold" Opacity=".2" Foreground="White"/>
+                                    <TextBlock Text="OTHER" 
+                                               TextWrapping="Wrap" 
+                                               FontSize="20" 
+                                               Foreground="White" 
+                                               Opacity=".5" 
+                                               HorizontalAlignment="Center" 
+                                               VerticalAlignment="Center"
+                                               />
+                                </Grid>
+                            </Border>
+
                         </Grid>
-                    </Border>
-                </ScrollViewer>
+                    </Grid>
+                </Border>
+
+                <Border Grid.Column="2" Width="300" CornerRadius="8" Background="#AE2d3436" Padding="30" Margin="5,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+
+                        <StackPanel Orientation="Vertical">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="Total" Foreground="White" FontWeight="Bold"/>
+                                <TextBlock Text="$0.00" Grid.Column="1" Foreground="White" FontWeight="Bold"/>
+                            </Grid>
+                            <Grid Margin="0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="Discount" Foreground="White" FontWeight="Bold"/>
+                                <TextBlock Text="$0.00" Grid.Column="1" Foreground="White" FontWeight="Bold"/>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="Total" Foreground="White" FontWeight="Bold"/>
+                                <TextBlock Text="$0.00" Grid.Column="1" Foreground="White" FontWeight="Bold" FontSize="20"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <ui:ListView Margin="0,5"  x:Name="Cart1" IsTabStop="False" Grid.Row="1" ItemsSource="{Binding OrderService.CurrentOrder.Cart}">
+                            <ui:ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="40"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <ui:Button IsTabStop="False" 
+                                                   Height="30"
+                                                   Width="30"
+                                                   Grid.Column="0" 
+                                                   ToolTip="Remove" 
+                                                   Command="{Binding ViewModel.ChangeQuantityCommand, RelativeSource={RelativeSource Mode=FindAncestor,AncestorType=Page}}" 
+                                                   CommandParameter="{Binding .}" 
+                                                   Margin="2,0"
+                                                   Padding="0"
+                                                   Foreground="White">
+                                            
+                                            <ui:SymbolIcon Symbol="Delete12"
+                                                           VerticalAlignment="Center" 
+                                                           HorizontalAlignment="Center"/>
+                                        </ui:Button>
+                                        <TextBlock Text="Card" Grid.Column="1" Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White"/>
+                                        <TextBlock Text="{Binding Amount,StringFormat='{}{0:c}'}" Grid.Column="2" Margin="20,0,0,0" VerticalAlignment="Center" Foreground="White"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ui:ListView.ItemTemplate>
+                        </ui:ListView>
+
+                        <StackPanel Orientation="Vertical" Grid.Row="2">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="Payments" Foreground="White" FontWeight="Bold"/>
+                                <TextBlock Text="$0" Grid.Column="1" Foreground="White" FontWeight="Bold"/>
+                            </Grid>
+                            <Grid Margin="0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="Balance" Foreground="White" FontWeight="Bold"/>
+                                <TextBlock Text="$0" Grid.Column="1" Foreground="White" FontWeight="Bold"/>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Text="Change" Foreground="White" FontWeight="Bold"/>
+                                <TextBlock Text="$0" Grid.Column="1" Foreground="White" FontWeight="Bold"/>
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
             </Grid>
 
             <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">

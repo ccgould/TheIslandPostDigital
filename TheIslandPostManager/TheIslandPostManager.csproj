@@ -6,8 +6,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <AssemblyVersion>1.0.1217.0</AssemblyVersion>
-    <FileVersion>1.0.1217.0</FileVersion>
+    <AssemblyVersion>1.0.1337.0</AssemblyVersion>
+    <FileVersion>1.0.1337.0</FileVersion>
 	<PreserveCompilationContext>true</PreserveCompilationContext>
 	<ApplicationIcon>logo.ico</ApplicationIcon>
 	  <!-- only accepts Major.Minor.Patch.Revision -->

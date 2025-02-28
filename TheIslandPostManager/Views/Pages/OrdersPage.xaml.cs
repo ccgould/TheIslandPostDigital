@@ -1,4 +1,5 @@
-﻿using TheIslandPostManager.ViewModels;
+﻿using TheIslandPostManager.Models;
+using TheIslandPostManager.ViewModels;
 using Wpf.Ui.Controls;
 
 namespace TheIslandPostManager.Views.Pages;
@@ -22,5 +23,11 @@ public partial class OrdersPage : INavigableView<OrdersPageViewModel>
     private void CalendarDatePicker_Click(object sender, System.Windows.RoutedEventArgs e)
     {
 
+    }
+
+    private void ListView_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        var listView = (ListView)sender;
+        ViewModel.SelectedHistory((Order)listView.SelectedValue);
     }
 }

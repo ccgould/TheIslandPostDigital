@@ -22,6 +22,7 @@ public partial class OrdersPageViewModel : ObservableObject
     [ObservableProperty] private DateTime dateTime1;
     [ObservableProperty] private DateTime dateTime2;
     [ObservableProperty] private bool isBusy;
+    [ObservableProperty] private Order order;
 
 
     public OrdersPageViewModel(IOrderService orderService,IEmailService emailService, IContentDialogService contentDialogService,IMySQLService mySQLService,INavigationService navigationService)
@@ -70,5 +71,10 @@ public partial class OrdersPageViewModel : ObservableObject
     {
         OrderService.CurrentHistoryOrder = order;
         navigationService.Navigate(typeof(OrderHistoryEditorPage));
+    }
+
+    internal void SelectedHistory(Order order)
+    {
+        Order = order;
     }
 }

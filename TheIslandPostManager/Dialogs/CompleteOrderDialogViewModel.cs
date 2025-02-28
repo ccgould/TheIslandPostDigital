@@ -19,6 +19,7 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
     private readonly IFileService fileService;
     private IOrderService _orderService;
     [ObservableProperty] private ObservableCollection<PurchaseItem> purchaseItems;
+    [ObservableProperty] private ObservableCollection<PaymentTransaction> paymentTransactions;
     [ObservableProperty] private ObservableCollection<Employee> employees;
     [ObservableProperty] private bool isFlyoutOpen;
     [ObservableProperty] private bool showImageCountOverMessage;
@@ -67,6 +68,57 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
         }
 
         RetailCount = OrderService.CurrentOrder.Cart.Count(x=>x.IsRetailItem);
+    }
+
+    [RelayCommand]
+    private async Task TransactionClick(string inputString)
+    {
+        PurchaseType inputAsEnum = (PurchaseType)Enum.Parse(typeof(PurchaseType), inputString, true);
+
+        //Check if payment is complete.
+
+
+
+        var itemsDialog = new PaymentTransacationDialog(contentDialogService.GetDialogHost(),3000);
+        var dialogResult = await itemsDialog.ShowAsync();
+
+        if (dialogResult == ContentDialogResult.None)
+        {
+            return;
+        }
+        else
+        {
+            //purchaseItem.IncrementAmount(itemsDialog.SelectedItem);
+            //OrderService.CurrentOrder.AddItemToCart(itemsDialog.SelectedItem);
+        }
+
+
+
+
+        // paymentTransactions.Add(new PaymentTransaction(inputAsEnum))
+
+        //if (purchaseItem.IsRetailItem && purchaseItem.HasChildren())
+        //{
+        //    var itemsDialog = new RetailItemsListPopup(contentDialogService.GetDialogHost(), purchaseItem.ChildrenItems);
+        //    var dialogResult = await itemsDialog.ShowAsync();
+
+        //    if (dialogResult == ContentDialogResult.None)
+        //    {
+        //        return;
+        //    }
+        //    else
+        //    {
+        //        purchaseItem.IncrementAmount(itemsDialog.SelectedItem);
+        //        OrderService.CurrentOrder.AddItemToCart(itemsDialog.SelectedItem);
+        //    }
+        //}
+        //else
+        //{
+        //    purchaseItem.IncrementAmount();
+        //    OrderService.CurrentOrder.AddItemToCart(purchaseItem);
+        //}
+
+        //RetailCount = OrderService.CurrentOrder.Cart.Count(x => x.IsRetailItem);
     }
 
     internal async Task<bool> CheckConditons()
@@ -278,7 +330,7 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
 
     internal void GetCartItems()
     {
-        PurchaseItems = mySQLService.GetStoreItems(App.IsRetailPage)?.Result;
+        PurchaseItems = mySQLService.GetProducts(App.IsRetailPage)?.Result;
 
 
         if (orderService.CurrentOrder.Cart.Any())

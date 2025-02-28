@@ -37,10 +37,10 @@ public partial class CompleteOrderPage : Page
             ClerkCmbox.Focus();
         }
 
-        if (string.IsNullOrWhiteSpace(PassengerNameTxtb.Text))
-        {
-            TextBlock1.Visibility = System.Windows.Visibility.Visible;
-            PassengerNameTxtb.Focus();
-        }
+        //if (string.IsNullOrWhiteSpace(PassengerNameTxtb.Text))
+        //{
+        //    TextBlock1.Visibility = System.Windows.Visibility.Visible;
+        //    PassengerNameTxtb.Focus();
+        //}
     }
 }
