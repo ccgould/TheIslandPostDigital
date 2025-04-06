@@ -55,7 +55,7 @@
 
                         <ui:Button Content="Cancel" x:Name="CancelBTN" Click="CancelBTN_Click"/>
                         <ui:TextBlock Grid.Column="1" Text="CASH" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" FontWeight="Bold"/>
-                        <ui:Button Grid.Column="2" Content="Done" HorizontalAlignment="Right"/>
+                        <ui:Button x:Name="DoneBTN" Grid.Column="2" Content="Done" HorizontalAlignment="Right" Click="DoneBTN_Click"/>
                     </Grid>
 
                     <!--Information Section-->

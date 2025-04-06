@@ -678,7 +678,7 @@ public class MySQLService: IMySQLService
                     Employee employee = new Employee()
                     {
                         FirstName = reader.GetString("firstName"),
-                        Pin = reader.GetString("pin"),
+                        //Pin = reader.GetString("pin"),
                         Salt = reader.GetString("salt"),
                     };
 

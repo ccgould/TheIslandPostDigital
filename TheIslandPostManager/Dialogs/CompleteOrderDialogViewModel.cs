@@ -5,7 +5,6 @@ using TheIslandPostManager.Models;
 using TheIslandPostManager.Services;
 using Wpf.Ui;
 using Wpf.Ui.Controls;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 
 namespace TheIslandPostManager.Dialogs;
 
@@ -29,7 +28,6 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
     [ObservableProperty] private int retailCount;
     private bool _managerBypass;
 
-
     public CompleteOrderDialogViewModel(IOrderService orderService, IMySQLService mySQLService, IMessageService messageService,INavigationService navigationService, IContentDialogService contentDialogService,IFileService fileService)
     {
         Employees = mySQLService.GetEmployees().Result;
@@ -40,6 +38,7 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
         this.navigationService = navigationService;
         this.contentDialogService = contentDialogService;
         this.fileService = fileService;
+        PaymentTransactions = new();
         _orderService = orderService;
     }
 
@@ -77,9 +76,7 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
 
         //Check if payment is complete.
 
-
-
-        var itemsDialog = new PaymentTransacationDialog(contentDialogService.GetDialogHost(),3000);
+        var itemsDialog = new PaymentTransacationDialog(contentDialogService.GetDialogHost(), OrderService.CurrentOrder.CartTotal / 0.01m);
         var dialogResult = await itemsDialog.ShowAsync();
 
         if (dialogResult == ContentDialogResult.None)
@@ -88,12 +85,12 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
         }
         else
         {
-            //purchaseItem.IncrementAmount(itemsDialog.SelectedItem);
-            //OrderService.CurrentOrder.AddItemToCart(itemsDialog.SelectedItem);
+            PaymentTransactions.Add(new PaymentTransaction(inputAsEnum,itemsDialog.GetBalanceAsDecimal()));
+
+            var totalAmount = itemsDialog.TotalAmount;
+            var change = itemsDialog.Change;
+            var balance = itemsDialog.Balance;
         }
-
-
-
 
         // paymentTransactions.Add(new PaymentTransaction(inputAsEnum))
 
@@ -119,6 +116,11 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
         //}
 
         //RetailCount = OrderService.CurrentOrder.Cart.Count(x => x.IsRetailItem);
+    }
+
+    private void DeletePaymentTransaction(PaymentTransaction transaction)
+    {
+        PaymentTransactions.Remove(transaction);
     }
 
     internal async Task<bool> CheckConditons()

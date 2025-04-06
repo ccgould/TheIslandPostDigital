@@ -47,6 +47,8 @@ public partial class Order : ObservableObject
     [ObservableProperty] private PurchaseType selectedPurchaseType = PurchaseType.None;
     [ObservableProperty] private int retailCount;
     [ObservableProperty] private int itemID;
+    [ObservableProperty] private decimal balance;
+    [ObservableProperty] private decimal change;
     public IEnumerable<PurchaseType> PurchaseTypeValues
     {
         get

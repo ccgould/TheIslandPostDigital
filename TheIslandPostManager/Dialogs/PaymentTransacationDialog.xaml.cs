@@ -1,23 +1,9 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using Google.Protobuf.WellKnownTypes;
-using System;
-using System.Collections.Generic;
+﻿using CommunityToolkit.Mvvm.Input;
 using System.ComponentModel;
 using System.Globalization;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Wpf.Ui.Controls;
 
 namespace TheIslandPostManager.Dialogs;
@@ -215,5 +201,15 @@ public partial class PaymentTransacationDialog : ContentDialog, INotifyPropertyC
     private void CancelBTN_Click(object sender, RoutedEventArgs e)
     {
         Hide(ContentDialogResult.None);
+    }
+
+    private void DoneBTN_Click(object sender, RoutedEventArgs e)
+    {
+        Hide(ContentDialogResult.Primary);
+    }
+
+    internal decimal GetBalanceAsDecimal()
+    {
+        return ConvertToDecimal(decimal.Parse(amount));
     }
 }

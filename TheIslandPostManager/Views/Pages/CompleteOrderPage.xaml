@@ -6,6 +6,7 @@
       xmlns:local="clr-namespace:TheIslandPostManager.Views.Pages"
       xmlns:controls="clr-namespace:TheIslandPostManager.Controls"
       controls:ImagesControlModule.Show="False"
+      xmlns:converters="clr-namespace:TheIslandPostManager.Converters"
       ScrollViewer.CanContentScroll="False"
       mc:Ignorable="d"
       xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -13,6 +14,9 @@
       Title="Cart"
       x:Name="dataPage">
 
+    <Page.Resources>
+        <converters:MoneyConverter x:Key="MoneyConverter"/>
+    </Page.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
@@ -256,7 +260,7 @@
 
 
                         <StackPanel Orientation="Vertical">
-                            <Grid>
+                            <!--<Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
@@ -264,7 +268,7 @@
 
                                 <TextBlock Text="Total" Foreground="White" FontWeight="Bold"/>
                                 <TextBlock Text="$0.00" Grid.Column="1" Foreground="White" FontWeight="Bold"/>
-                            </Grid>
+                            </Grid>-->
                             <Grid Margin="0,10">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -272,7 +276,7 @@
                                 </Grid.ColumnDefinitions>
 
                                 <TextBlock Text="Discount" Foreground="White" FontWeight="Bold"/>
-                                <TextBlock Text="$0.00" Grid.Column="1" Foreground="White" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding OrderService.CurrentOrder.Discount, Converter={StaticResource MoneyConverter}}" Grid.Column="1" Foreground="White" FontWeight="Bold"/>
                             </Grid>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -281,11 +285,11 @@
                                 </Grid.ColumnDefinitions>
 
                                 <TextBlock Text="Total" Foreground="White" FontWeight="Bold"/>
-                                <TextBlock Text="$0.00" Grid.Column="1" Foreground="White" FontWeight="Bold" FontSize="20"/>
+                                <TextBlock Text="{Binding OrderService.CurrentOrder.CartTotal, Converter={StaticResource MoneyConverter}}" Grid.Column="1" Foreground="White" FontWeight="Bold" FontSize="20"/>
                             </Grid>
                         </StackPanel>
 
-                        <ui:ListView Margin="0,5"  x:Name="Cart1" IsTabStop="False" Grid.Row="1" ItemsSource="{Binding OrderService.CurrentOrder.Cart}">
+                        <ui:ListView Margin="0,5"  x:Name="Cart1" IsTabStop="False" Grid.Row="1" ItemsSource="{Binding PaymentTransactions}">
                             <ui:ListView.ItemTemplate>
                                 <DataTemplate>
                                     <Grid>
@@ -310,7 +314,7 @@
                                                            VerticalAlignment="Center" 
                                                            HorizontalAlignment="Center"/>
                                         </ui:Button>
-                                        <TextBlock Text="Card" Grid.Column="1" Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White"/>
+                                        <TextBlock Text="{Binding PurchaseType}" Grid.Column="1" Margin="20,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White"/>
                                         <TextBlock Text="{Binding Amount,StringFormat='{}{0:c}'}" Grid.Column="2" Margin="20,0,0,0" VerticalAlignment="Center" Foreground="White"/>
                                     </Grid>
                                 </DataTemplate>
@@ -325,7 +329,7 @@
                                 </Grid.ColumnDefinitions>
 
                                 <TextBlock Text="Payments" Foreground="White" FontWeight="Bold"/>
-                                <TextBlock Text="$0" Grid.Column="1" Foreground="White" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding PaymentsTotal,Converter={StaticResource MoneyConverter}}" Grid.Column="1" Foreground="White" FontWeight="Bold"/>
                             </Grid>
                             <Grid Margin="0,10">
                                 <Grid.ColumnDefinitions>
@@ -334,7 +338,7 @@
                                 </Grid.ColumnDefinitions>
 
                                 <TextBlock Text="Balance" Foreground="White" FontWeight="Bold"/>
-                                <TextBlock Text="$0" Grid.Column="1" Foreground="White" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding OrderService.CurrentOrder.Balance, Converter={StaticResource MoneyConverter}}" Grid.Column="1" Foreground="White" FontWeight="Bold"/>
                             </Grid>
                             <Grid>
                                 <Grid.ColumnDefinitions>
