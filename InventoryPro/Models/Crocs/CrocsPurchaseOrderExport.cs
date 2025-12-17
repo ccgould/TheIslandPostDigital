@@ -1,10 +1,15 @@
 ﻿
 using CsvHelper.Configuration.Attributes;
+using InventoryPro.Interface;
 using InventoryPro.Services;
 
 namespace InventoryPro.Models.Crocs;
-public class CrocsPurchaseOrderExport
+public class CrocsPurchaseOrderExport : IExportObject
 {
+    public CrocsPurchaseOrderExport()
+    {
+        
+    }
     public CrocsPurchaseOrderExport(CrocsPurchaseOrder purchaseOrder)
     {
         //FigureOutPONumber
@@ -20,7 +25,7 @@ public class CrocsPurchaseOrderExport
         DESC1 = FormatDescription(purchaseOrder.Description);
         DESC2 = purchaseOrder.Item;
         Qty = purchaseOrder.Quantity;
-        Upc = purchaseOrder.UniversalProductCode;
+        UPC = purchaseOrder.UniversalProductCode;
         //Add Vencode
 
         if (purchaseOrder.IsJibbit)
@@ -113,7 +118,7 @@ public class CrocsPurchaseOrderExport
     [Name("ORD QTY")]
     public int Qty { get; set; }
     [Name("UPC")]
-    public string Upc { get; set; }
+    public string UPC { get; set; }
     [Name("VENCODE")]
     public string Vencode { get; set; }
     public string UDF3 { get; set; }
@@ -129,9 +134,22 @@ public class CrocsPurchaseOrderExport
     public decimal POCOST { get; set; }
     public decimal PRICE { get; set; }
     public int POPENDING { get; set; } = 0;
+    public string FilePath { get; set; }
+
+    public POHistory GetPOHistory(bool isCrocs)
+    {
+        return new POHistory
+        {
+            FileName = Path.GetFileName(FilePath),
+            Store = isCrocs ? Enumerators.Store.Crocs : Enumerators.Store.RipCurl,
+            DateString = DateTime.Now.ToString("yyyy-MM-dd"),
+            UPC = UPC,
+            Qty = Qty
+        };
+    }
 
     public override string? ToString()
     {
-        return $"{Upc} | {Qty}";
+        return $"{UPC} | {Qty}";
     }
 }

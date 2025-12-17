@@ -22,14 +22,16 @@ public interface IOrderService
     Task CreateOrder(bool copy = false);
     void DeleteAllImages();
     void DeleteOrder(Order order);
-    void DeleteOrder(string orderId);
+    void DeleteOrder(int orderId);
     Task DeletePendingOrder(Order order);
     int GetOrderCount();
     Task GetPendingOrders();
     Task OpenOrderFromPending(Order order);
     Task PendOrder(string name);
+    Task ExportOrder();
     void RemoveImageFromOrder(ImageObj image);
     void RemoveImageFromOrderPrints(ImageObj image);
     void SetAsMaybe(ImageObj image);
     void UpdateOrder(Order order);
+    void CurrentDeleteOrder();
 }

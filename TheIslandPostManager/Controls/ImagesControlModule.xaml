@@ -108,7 +108,7 @@ xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal" Grid.Column="1">
-                            <ui:Button
+                            <!--<ui:Button
                                 IsTabStop="False"
                                     Command="{Binding Path=TemplateButtonCommand, RelativeSource={RelativeSource TemplatedParent}}"
                                     CommandParameter="createOrder"
@@ -123,6 +123,15 @@ xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
                                     CommandParameter="pendOrder"
                                     ToolTip="Pend Order">
                                 <ui:SymbolIcon Symbol="Clock12" FontSize="18"/>
+                            </ui:Button>-->
+                            <ui:Button
+                                IsTabStop="False"
+                                    Margin="10,0,0,0"
+                                    Grid.Column="1"
+                                    Command="{Binding Path=TemplateButtonCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                                    CommandParameter="exportOrder"
+                                    ToolTip="Export">
+                            <ui:SymbolIcon Symbol="Cart24" FontSize="18"/>
                             </ui:Button>
                         </StackPanel>
                         <Separator

@@ -1,18 +1,25 @@
+﻿using CsvHelper;
 using CsvHelper.Configuration;
-using CsvHelper;
-using Microsoft.WindowsAPICodePack.Dialogs;
-using System.Globalization;
-using Serilog;
-using InventoryPro.Services;
+using InventoryPro.Interface;
 using InventoryPro.Models.Crocs;
+using InventoryPro.Services;
+using Microsoft.WindowsAPICodePack.Dialogs;
+using Serilog;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Windows.Controls;
+using System.Windows.Forms;
 
 namespace InventoryPro;
 
 public partial class Form1 : Form
 {
-    private List<CrocsPurchaseOrderExport> _crocsExport;
-    
-    private List<RipCurlPurchaseOrderExport> _ripCurlExport;
+    private List<IExportObject> _exports = new();
+
+    private List<RipCurlPurchaseOrder> purchaseRecordsRP = new();
+    private List<CrocsPurchaseOrder> purchaseRecordsCrocs = new();
+    private int _mergesCount;
+    private List<IExportObject> _pendingExports = new();
 
     public Form1()
     {
@@ -34,31 +41,57 @@ public partial class Form1 : Form
         //SqliteDataAccess.FindItemInMaterialsWithUPC("674236403609");
 
         //var materials = SqliteDataAccess.LoadMaterials();
+
+
+        var page = new MaxLengthCorrectionPage();
+        page.ShowDialog();
     }
 
     private void browseBtn_Click(object sender, EventArgs e)
     {
         CommonOpenFileDialog dialog = new CommonOpenFileDialog();
         dialog.Filters.Add(new CommonFileDialogFilter("Comma Seperated Values", "CSV"));
-        //dialog.IsFolderPicker = true;
+        dialog.Multiselect = true;
+
         if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
         {
-            importTxtB.Text = dialog.FileName;
+            foreach (var fileName in dialog.FileNames)
+            {
+                if (IsDuplicatePath(dataGridView1, fileName))
+                {
+                    continue;
+                }
+
+                int rowIndex = dataGridView1.Rows.Add(); // Adds a new, empty row and returns its index
+                dataGridView1.Rows[rowIndex].Cells[0].Value = fileName;
+                importBtn.Enabled = true;   
+            }
         }
+    }
+
+    bool IsDuplicatePath(DataGridView dgv, string path)
+    {
+        foreach (DataGridViewRow row in dgv.Rows)
+        {
+            if (!row.IsNewRow &&
+                row.Cells["Path"].Value?.ToString() == path)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void importBtn_Click(object sender, EventArgs e)
     {
+        bool passed = false;
+
         try
         {
             WriteToStatus("Import Started....");
 
-            if (string.IsNullOrWhiteSpace(importTxtB.Text))
-            {
-                //Add To Log
-                return;
-            }
-
+            importBtn.Enabled = false;
+            var expectedHeader = new[] { "item", "description", "", "msrp", "", "upc", "qty", "rate", "amount" };
             var config = new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 HasHeaderRecord = hasHeaderChkB.Checked,
@@ -66,95 +99,141 @@ public partial class Form1 : Form
                 MissingFieldFound = null,
                 IgnoreBlankLines = false,
                 BadDataFound = null,
+                ShouldSkipRecord = (row) =>
+                {
+                    if (!crocsRadBtn.Checked) return false;
+
+                    var normalized = row.Row.Parser.Record.Select(r => r.Trim().ToLower()).ToArray();
+
+                    if (normalized.SequenceEqual(expectedHeader) && row.Row.Parser.Row > 4)
+                    {
+                        return true;
+                    }
+
+
+                    return string.IsNullOrWhiteSpace(row.Row[0]) || row.Row.Parser.Row < 4;
+                }
             };
 
-
-            if (crocsRadBtn.Checked)
+            if (dataGridView1.Rows.Count == 0)
             {
-                CrocsImport(config);
-            }
-            else
-            {
-                RipCurlImport(config);
+                MessageBox.Show("No files to import. Please add files first.", "Attention", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                WriteToStatus("Import Aborted: No files to import.");
+                return;
             }
 
+            foreach (DataGridViewRow row in dataGridView1.Rows)
+            {
+                if (crocsRadBtn.Checked)
+                {
+                    passed = CrocsImport(config, row.Cells["Path"].Value.ToString());
+                }
+                else
+                {
+                    passed = RipCurlImport(config, row.Cells["Path"].Value.ToString());
+                }
+            }
 
-            WriteToStatus("Import Completed Successfully....");
+            if (passed)
+            {
+                MergeDuplicated();
+
+                exportBtn.Enabled = true;
+            }
         }
         catch (Exception ex)
         {
             MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             Log.Error(ex, "Error Occured:");
-            WriteToStatus("Done with errors....");
+            exportBtn.Enabled = false;
+            importBtn.Enabled = true;
         }
 
+        WriteToStatus(passed ? "Import Completed Successfully...." : "Done with errors....");
     }
 
-    private void RipCurlImport(CsvConfiguration config)
+    private void deleteSelectedButton_Click(object sender, EventArgs e)
     {
-        List<RipCurlPurchaseOrder> purchaseOrders = null;
+        // Optional: Add a confirmation dialog
+        if (MessageBox.Show("Are you sure you want to delete the selected row(s)?", "Confirm Deletion", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
+        {
+            return; // User cancelled the operation
+        }
 
-        using (var reader = new StreamReader(importTxtB.Text))
+        var selectedRow = dataGridView1.CurrentRow;
+        if (selectedRow != null && !selectedRow.IsNewRow)
+        {
+            dataGridView1.Rows.RemoveAt(selectedRow.Index);
+        }
+
+
+        // If bound to a DataTable and you marked rows for deletion,
+        // you might need to update the database and then call AcceptChanges on the DataTable.
+        // Example:
+        //myDataTable.AcceptChanges(); // Commits changes to the DataTable
+    }
+
+    private bool RipCurlImport(CsvConfiguration config, string path)
+    {
+        using (var reader = new StreamReader(path))
         using (var csv = new CsvReader(reader, config))
         {
             csv.Context.RegisterClassMap<RipCurlPurchaseOrderCSVMap>();
-            purchaseOrders = csv.GetRecords<RipCurlPurchaseOrder>().ToList();
+
+            while (csv.Read())
+            {
+
+                try
+                {
+                    var record = csv.GetRecord<RipCurlPurchaseOrder>();
+                    purchaseRecordsRP.Add(record);
+                }
+                catch (Exception ex)
+                {
+                    WriteToStatus($"Skipping row {csv.Context.Parser.Row}: {ex.Message}");
+                }
+            }
         }
 
         List<RipCurlPurchaseOrderExport> purchaseOrderExport = new List<RipCurlPurchaseOrderExport>();
 
-        foreach (var purchaseOrder in purchaseOrders)
+        foreach (var purchaseOrder in purchaseRecordsRP)
         {
-            //if (string.IsNullOrWhiteSpace(purchaseOrder.Desc))
-            //{
-            //    var materialResult = SqliteDataAccess.FindItemInMaterialsWithUPC(purchaseOrder.UniversalProductCode);
-            //    if (materialResult is not null)
-            //    {
-            //        purchaseOrder.Description = materialResult.MaterialDescription;
-            //    }
-            //}
-            purchaseOrderExport.Add(new RipCurlPurchaseOrderExport(purchaseOrder));
+            var export = new RipCurlPurchaseOrderExport(purchaseOrder);
+            export.FilePath = path;
+            purchaseOrderExport.Add(export);
         }
 
-        var duplicates = purchaseOrderExport.GroupBy(x => new { x.LocalUPC })
-                 .Where(x => x.Skip(1).Any());
+        _pendingExports.AddRange(purchaseOrderExport);
 
-        int i = duplicates.Count();
-
-        if (duplicates.Any())
-        {
-            foreach (var dupli in duplicates)
-            {
-                i -= 1;
-                var dupl = new RipCurlDuplicateForm(dupli, purchaseOrderExport, i);
-                dupl.ShowDialog();
-            }
-        }
-
-        if (!validateChkB.Checked)
-        {
-            _ripCurlExport = purchaseOrderExport;
-        }
-        else
-        {
-            _ripCurlExport = null;
-        }
+        return purchaseOrderExport.Count > 0;
     }
 
-    private void CrocsImport(CsvConfiguration config)
+    private bool CrocsImport(CsvConfiguration config, string path)
     {
-        List<CrocsPurchaseOrder> purchaseOrders = null;
-
-        using (var reader = new StreamReader(importTxtB.Text))
+        using (var reader = new StreamReader(path))
         using (var csv = new CsvReader(reader, config))
         {
             csv.Context.RegisterClassMap<CrocsPurchaseOrderCSVMap>();
-            purchaseOrders = csv.GetRecords<CrocsPurchaseOrder>().ToList();
+
+            while (csv.Read())
+            {
+                try
+                {
+                    var record = csv.GetRecord<CrocsPurchaseOrder>();
+                    purchaseRecordsCrocs.Add(record);
+
+                }
+                catch (Exception ex)
+                {
+                    WriteToStatus($"Skipping row {csv.Context.Parser.Row}: {ex.Message}");
+                }
+            }
         }
 
         List<CrocsPurchaseOrderExport> purchaseOrderExport = new List<CrocsPurchaseOrderExport>();
 
-        foreach (var purchaseOrder in purchaseOrders)
+        foreach (var purchaseOrder in purchaseRecordsCrocs)
         {
             if (string.IsNullOrWhiteSpace(purchaseOrder.Description))
             {
@@ -177,32 +256,64 @@ public partial class Form1 : Form
                     WriteToStatus($"Cannot find item with item number {purchaseOrder.Item}");
                 }
             }
-            purchaseOrderExport.Add(new CrocsPurchaseOrderExport(purchaseOrder));
+            var export = new CrocsPurchaseOrderExport(purchaseOrder);
+            export.FilePath = path;
+            purchaseOrderExport.Add(export);
         }
 
-        var duplicates = purchaseOrderExport.GroupBy(x => new { x.Upc })
+
+        _pendingExports.AddRange(purchaseOrderExport);
+
+        return purchaseOrderExport?.Count > 0;
+    }
+
+
+    private void MergeDuplicated()
+    {
+        var duplicates = _pendingExports.GroupBy(x => new { x.UPC })
                  .Where(x => x.Skip(1).Any());
 
         int i = duplicates.Count();
+
+        _mergesCount = i;
+
+        if (duplicates.Any())
+        {
+            var msg = MessageBox.Show("Duplicates Found", "There were duplicates found in this document would you like to merge all?",MessageBoxButtons.YesNoCancel);
+            if(msg == DialogResult.Yes)
+            {
+                MergeAll(duplicates);
+            }
+            else if (msg == DialogResult.No)
+            {
+                foreach (var dupli in duplicates)
+                {
+                    i -= 1;
+                    var dupl = new DuplicateForm(dupli, _pendingExports, i);
+                    dupl.ShowDialog();
+                }
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        _exports = _pendingExports.ToList();
+    }
+
+    private void MergeAll(IEnumerable<IGrouping<object, IExportObject>> duplicates)
+    {
 
         if (duplicates.Any())
         {
             foreach (var dupli in duplicates)
             {
-                i -= 1;
-                var dupl = new DuplicateForm(dupli, purchaseOrderExport, i);
-                dupl.ShowDialog();
+                DataHandler.Merge(dupli, _pendingExports);
             }
         }
 
-        if (!validateChkB.Checked)
-        {
-            _crocsExport = purchaseOrderExport;
-        }
-        else
-        {
-            _crocsExport = null;
-        }
+        _exports = _pendingExports.ToList();
     }
 
     private void WriteToStatus(string info)
@@ -211,64 +322,15 @@ public partial class Form1 : Form
         statusTxtB.Text = info;
     }
 
-    private void CreateCSVFile(List<CrocsPurchaseOrderExport> purchaseOrderExport, string path)
-    {
-        if(!validateChkB.Checked)
-        {
-            using (var writer = new StreamWriter(path))
-            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
-            {
-                csv.WriteRecords(purchaseOrderExport);
-            }
-        }
-        else
-        {
-            MessageBox.Show("Cannot export in validate mode.", "Attention", MessageBoxButtons.OK,MessageBoxIcon.Warning);
-        }
-    }
-
-    private void CreateCSVFileRip(List<RipCurlPurchaseOrderExport> purchaseOrderExport, string path)
-    {
-        if (!validateChkB.Checked)
-        {
-            using (var writer = new StreamWriter(path))
-            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
-            {
-                csv.WriteRecords(purchaseOrderExport);
-            }
-        }
-        else
-        {
-            MessageBox.Show("Cannot export in validate mode.", "Attention", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-        }
-    }
-
     private void exportBtn_Click(object sender, EventArgs e)
     {
         try
         {
-            var saveDialog = new CommonSaveFileDialog();
-            saveDialog.Filters.Add(new CommonFileDialogFilter("Comma Seperated Value", ".csv"));
-
-            saveDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-
-
-
-            if (saveDialog.ShowDialog() == CommonFileDialogResult.Ok)
-            {
-                WriteToStatus("Export Started....");
-
-                if(crocsRadBtn.Checked)
-                {
-                    CreateCSVFile(_crocsExport, saveDialog.FileName);
-                }
-                else
-                {
-                    CreateCSVFileRip(_ripCurlExport, saveDialog.FileName);
-                }
-
-                WriteToStatus("Export Completed Successfully....");
-            }
+            WriteToStatus("Export Started....");
+            exportBtn.Enabled = false;
+            ExportForm exportForm = new ExportForm(_mergesCount, purchaseRecordsCrocs.Count, purchaseRecordsRP.Count, crocsRadBtn.Checked, _exports);
+            exportForm.ShowDialog();
+            WriteToStatus("Export Completed Successfully....");
         }
         catch (Exception ex)
         {
@@ -276,6 +338,19 @@ public partial class Form1 : Form
             Log.Error(ex, "Error Occured:");
             WriteToStatus("Done with errors...."); ;
         }
+        finally
+        {
+            Clear();
+            importBtn.Enabled = true;
+        }
+    }
+
+    private void Clear()
+    {
+        _exports?.Clear();
+        purchaseRecordsCrocs?.Clear();
+        purchaseRecordsRP.Clear();
+        dataGridView1?.Rows?.Clear();
     }
 
     private void logBtn_Click(object sender, EventArgs e)
@@ -308,5 +383,21 @@ public partial class Form1 : Form
         {
             SqliteDataAccess.SaveMaterials(purchaseOrder);
         }
+    }
+
+    private void closeToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+        Close();
+    }
+
+    private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    private void findMenuItem_Click(object sender, EventArgs e)
+    {
+        FindForm form = new FindForm();
+        form.ShowDialog();
     }
 }

@@ -1,13 +1,14 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using FluentEmail.Core;
+using Microsoft.VisualBasic;
 using System.Collections.ObjectModel;
-using System.Drawing.Imaging;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.Drawing.Printing;
 using System.IO;
+using TheIslandPostManager.Helpers;
 using TheIslandPostManager.Models;
 using ImageObj = TheIslandPostManager.Models.ImageObj;
-using TheIslandPostManager.Helpers;
-using Microsoft.VisualBasic;
-using FluentEmail.Core;
 
 
 namespace TheIslandPostManager.Services;
@@ -37,6 +38,7 @@ public partial class OrderService : ObservableObject, IOrderService
     private int currentOrderIndex;
     private string _tempFolder;
     private string _inputFolder;
+    private bool _bypassMysql;
 
     public OrderService(IMessageService messageService,IFileService fileService,IMySQLService mySQLService)
     {
@@ -95,9 +97,9 @@ public partial class OrderService : ObservableObject, IOrderService
         GC.Collect();
     }
 
-    public void DeleteOrder(string orderId)
+    public void DeleteOrder(int orderId)
     {
-       var order =  CurrentOrders.FirstOrDefault(x => x.CustomerID == orderId);
+       var order =  CurrentOrders.FirstOrDefault(x => x.ID == orderId);
         DeleteOrder(order);
     }
 
@@ -187,12 +189,17 @@ public partial class OrderService : ObservableObject, IOrderService
 
         }
 
-        await mySQLService.AddCompletedOrder(CurrentOrder);
+        if(!_bypassMysql)
+        {
+            var id = await mySQLService.AddCompletedOrder(CurrentOrder);
+            CurrentOrder.ID = Convert.ToInt32(id);
+        }
 
         //Delete Order
-        DeleteOrder(CurrentOrder);
+        //DeleteOrder(CurrentOrder);
 
         CurrentOrder = CurrentOrders.FirstOrDefault();
+
 
     }
 
@@ -338,7 +345,7 @@ public partial class OrderService : ObservableObject, IOrderService
 
             CurrentOrder.Thumbnail = CurrentOrder.CurrentImages.FirstOrDefault().LowImage;
             CurrentOrder.DownloadURL = dirName;
-            CurrentOrder.Date = DateTime.Now;
+            CurrentOrder.Date = DateOnly.FromDateTime(DateTime.Now);
             PendingOrders.Add(CurrentOrder);
             await mySQLService.AddPendingOrder(CurrentOrder);
             //CurrentOrder.Thumbnail = LoadImageFile(ThumnailLocationFormat(CurrentOrder));
@@ -380,7 +387,7 @@ public partial class OrderService : ObservableObject, IOrderService
     {
         CreateOrder(order);
 
-        var result = await mySQLService.LoadImages(order.CustomerID);
+        var result = await mySQLService.LoadImages(order.ID);
         if(result is not null)
         {
             order.ApprovedPrints = result.Item3;
@@ -434,6 +441,18 @@ public partial class OrderService : ObservableObject, IOrderService
     public int GetOrderCount()
     {
         return CurrentOrders.Count();
+    }
+
+    public async Task ExportOrder()
+    {
+        _bypassMysql = true;
+        await CompleteOrderAsync();
+        _bypassMysql = false;
+    }
+
+    public void CurrentDeleteOrder()
+    {
+        DeleteOrder(CurrentOrder);
     }
 }
 public class DirectoryInfoComparer : IEqualityComparer<DirectoryInfo>

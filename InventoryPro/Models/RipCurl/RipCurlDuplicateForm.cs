@@ -59,7 +59,7 @@ public partial class RipCurlDuplicateForm : Form
 
         foreach (var item in _currentData)
         {
-            total += item.OrderQty;
+            total += item.Qty;
         }
 
         for (int index = 0; index < _currentData.Count - 1; index++)
@@ -68,7 +68,7 @@ public partial class RipCurlDuplicateForm : Form
             _currentData.RemoveAt(index);
         }
 
-        _currentData[0].OrderQty = total;
+        _currentData[0].Qty = total;
 
         getData();
 

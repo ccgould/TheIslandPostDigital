@@ -10,6 +10,7 @@ public partial class Employee : ObservableObject
     [ObservableProperty] private bool isTerminated;
     [ObservableProperty] private string pin;
     [ObservableProperty] private string salt;
+    [ObservableProperty] private string email = "ccgould@yahoo.com";
     private string fullName;
 
     public string FullName { get => $"{FirstName} {LastName}"; }

@@ -99,19 +99,11 @@
                         <ui:ListView.ItemTemplate>
                             <DataTemplate>
                                 <Grid Margin="10,0">
-                                    <!--<Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>-->
 
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="*"/>
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
-
-                                    <!--<Label Grid.Column="1" Content="{Binding Date}" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.RowSpan="2"/>-->
 
                                     <Grid Grid.Column="0" Background="#202020">
                                         <Grid.ColumnDefinitions>
@@ -146,13 +138,12 @@
                                                 <ui:SymbolIcon Symbol="BuildingRetail20"  Margin="10,0"/>
                                                 <Label Grid.Column="1" Content="{Binding RetailCount}" VerticalAlignment="Center"/>
                                             </StackPanel>
+                                            
                                         </StackPanel>
 
                                         <TextBlock Grid.Column="2" Text="{Binding Time,StringFormat={}{0:hh:mm tt}}" VerticalAlignment="Center" Margin="5"/>
 
                                     </Grid>
-                                    <!--<ui:Button Grid.Column="2" Content="Send Email" Margin="30,10,10,10" VerticalAlignment="Center" Grid.RowSpan="2" Command="{Binding ElementName=ordersPage, Path=ViewModel.SendEmailCommand}" CommandParameter="{Binding .}" IsEnabled="{Binding IsFinalized, Converter={StaticResource InverseBooleanConverter}}"/>-->
-                                    <!--<ui:Button Grid.Column="3" Content="View Order" Margin="0,10,10,10" VerticalAlignment="Center" Grid.RowSpan="2" Command="{Binding ElementName=ordersPage, Path=ViewModel.OpenHistoryCommand}" CommandParameter="{Binding .}"/>-->
 
                                     <Grid Grid.Row="1"  Background="#404040" Height="70">
                                         <Grid.ColumnDefinitions>
@@ -160,14 +151,18 @@
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="80"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="R000001" VerticalAlignment="Center" Margin="5"/>
                                         <Separator  Grid.Column="1" Height="30"/>
-                                        <TextBlock Grid.Column="2" HorizontalAlignment="Left" Text="ccgould@yahoo.com" VerticalAlignment="Center" Margin="5"/>
+                                        <TextBlock Grid.Column="2" HorizontalAlignment="Left" Text="{Binding Email}" VerticalAlignment="Center" Margin="5"/>
                                         <StackPanel Grid.Column="3" Orientation="Horizontal">
                                             <ui:SymbolIcon Symbol="Money24" Margin="10,0" FontSize="25"/>
                                             <TextBlock Grid.Column="1" Text="{Binding CartTotal,StringFormat='{}{0:c}'}" FontWeight="Bold" VerticalAlignment="Center" Margin="5" FontSize="25"/>
                                         </StackPanel>
+                                        <ui:Button Grid.Column="4" Margin="10,0" Appearance="Danger" Command="{Binding ElementName=ordersPage, Path=ViewModel.DeleteCommand}" CommandParameter="{Binding .}">
+                                            <ui:SymbolIcon Symbol="Delete28" Filled="True" ToolTip="Delete"/>
+                                        </ui:Button>
                                     </Grid>
                                 </Grid>
                             </DataTemplate>
@@ -274,7 +269,7 @@
                             <TextBlock Text="Approved Photos" Foreground="White"/>
                             <Border Grid.Row="1"  CornerRadius="8" Margin="5">
                                 <ScrollViewer>
-                                    <ui:ListView  ItemsSource="{Binding OrderService.CurrentHistoryOrder.PurchaseHistoryItems}">
+                                    <ui:ListView  ItemsSource="{Binding ViewModel.Order.CurrentImages}">
                                         <ui:ListView.ItemTemplate>
                                             <DataTemplate DataType="{x:Type List}">
                                                 <Grid>
@@ -292,7 +287,7 @@
                                                         <ui:SymbolIcon Symbol="Print24" Filled="True"/>
                                                         <Label Content="{Binding PrintAmount}" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                     </Grid>
-                                                    <ui:Button Content="Open" Grid.Column="2" Command="{Binding ElementName=orderHistoryEditorPage, Path=ViewModel.OpenCommand}" CommandParameter="{Binding .}"/>
+                                                    <ui:Button Content="Open" Grid.Column="2" Command="{Binding ElementName=ordersPage, Path=ViewModel.OpenCommand}" CommandParameter="{Binding .}"/>
                                                 </Grid>
                                             </DataTemplate>
                                         </ui:ListView.ItemTemplate>

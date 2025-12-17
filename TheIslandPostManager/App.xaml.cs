@@ -61,6 +61,7 @@ public partial class App : Application
                 services.AddSingleton<IMessageService, MessageService>();
                 services.AddSingleton<ISnackbarService, SnackbarService>();
                 services.AddSingleton<ViewModels.MainWindowViewModel>();
+                services.AddSingleton<POSPrinter>();
 
                 services.AddSingleton<IContentDialogService, ContentDialogService>();
                 services.AddSingleton<IEmailService, EmailService>();
@@ -93,6 +94,9 @@ public partial class App : Application
 
                 services.AddTransient<Views.Pages.EarningsPage>();
                 services.AddTransient<EarningsPageViewmodel>();
+
+                services.AddTransient<Views.Pages.CheckOutPage>();
+                services.AddTransient<CheckoutPageViewModel>();
 
                 //services.AddSingleton<CustomerWindow>();
                 //services.AddSingleton<ViewModels.CustomerWindowViewmodel>();
@@ -222,5 +226,10 @@ public partial class App : Application
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         // For more info see https://docs.microsoft.com/en-us/dotnet/api/system.windows.application.dispatcherunhandledexception?view=windowsdesktop-6.0
+    }
+
+    public App()
+    {
+        
     }
 }

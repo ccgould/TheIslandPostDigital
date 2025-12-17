@@ -9,11 +9,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetSparkleGenerator", "..\N
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "sha1_Hashing", "..\sha1_Hashing\sha1_Hashing.csproj", "{8E4FA25F-E66D-448C-8CEC-862A6B1719AF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IslandPostAdministrator", "..\IslandPostAdministrator\IslandPostAdministrator.csproj", "{F6FF832A-B283-492C-8289-5AAAB9DED490}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "InventoryPro", "..\InventoryPro\InventoryPro.csproj", "{B5D5D92C-560D-44AC-9BED-4CEE433A095B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IPDLibrary", "..\IPDLibrary\IPDLibrary.csproj", "{94A75E2F-5E21-46AF-BE85-0D389B5D6D1A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IslandPostApi", "..\IslandPostApi\IslandPostApi.csproj", "{332EC3B9-FB3D-4687-85D5-895509FE1089}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "API", "API", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{3AFE335C-D9A0-41AE-9619-1082EC13657E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{A3ED6812-A66C-44D1-A79C-D6C254B5147F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,10 +39,6 @@ Global
 		{8E4FA25F-E66D-448C-8CEC-862A6B1719AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E4FA25F-E66D-448C-8CEC-862A6B1719AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8E4FA25F-E66D-448C-8CEC-862A6B1719AF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F6FF832A-B283-492C-8289-5AAAB9DED490}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F6FF832A-B283-492C-8289-5AAAB9DED490}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F6FF832A-B283-492C-8289-5AAAB9DED490}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F6FF832A-B283-492C-8289-5AAAB9DED490}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B5D5D92C-560D-44AC-9BED-4CEE433A095B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B5D5D92C-560D-44AC-9BED-4CEE433A095B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B5D5D92C-560D-44AC-9BED-4CEE433A095B}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -45,9 +47,19 @@ Global
 		{94A75E2F-5E21-46AF-BE85-0D389B5D6D1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{94A75E2F-5E21-46AF-BE85-0D389B5D6D1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{94A75E2F-5E21-46AF-BE85-0D389B5D6D1A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{332EC3B9-FB3D-4687-85D5-895509FE1089}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{332EC3B9-FB3D-4687-85D5-895509FE1089}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{332EC3B9-FB3D-4687-85D5-895509FE1089}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{332EC3B9-FB3D-4687-85D5-895509FE1089}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E18F1EDB-7167-4F50-B5AC-65C1CD4EACDD} = {3AFE335C-D9A0-41AE-9619-1082EC13657E}
+		{8E4FA25F-E66D-448C-8CEC-862A6B1719AF} = {A3ED6812-A66C-44D1-A79C-D6C254B5147F}
+		{B5D5D92C-560D-44AC-9BED-4CEE433A095B} = {A3ED6812-A66C-44D1-A79C-D6C254B5147F}
+		{332EC3B9-FB3D-4687-85D5-895509FE1089} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6098DBB2-7C20-4BB0-BFA2-C761BDCE5F20}

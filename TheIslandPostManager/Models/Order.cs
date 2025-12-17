@@ -17,7 +17,7 @@ public partial class Order : ObservableObject
     [ObservableProperty] private string downloadURL;
 
     [Display(Name = "Customer ID", AutoGenerateField = false)]
-    public string CustomerID { get; set; } = Guid.NewGuid().ToString();
+    public int CustomerID { get; set; }
 
     [ObservableProperty] private string name;
 
@@ -31,6 +31,7 @@ public partial class Order : ObservableObject
     [ObservableProperty] private List<IImage> approvedImages = new();
     [ObservableProperty] private List<IImage> approvedPrints = new();
     [ObservableProperty] private ObservableCollection<PurchaseItem> cart = new();
+    [ObservableProperty] private ObservableCollection<PaymentTransaction> paymentTransactions;
     [ObservableProperty] private decimal cartTotal;
     [ObservableProperty] private decimal vatTotal;
     [ObservableProperty] private int approvedImagesCount;
@@ -38,8 +39,8 @@ public partial class Order : ObservableObject
     [ObservableProperty] private int videoCount;
     [ObservableProperty] private int printingCount;
     [ObservableProperty] private string orderPath;
-    [ObservableProperty] private DateTime date;
-    [ObservableProperty] private DateTime time;
+    [ObservableProperty] private DateOnly date;
+    [ObservableProperty] private TimeOnly time;
     [ObservableProperty] private bool isFinalized;
     [ObservableProperty] private bool isCompleteingOrder;
     [ObservableProperty] private int maybeCount;
@@ -84,6 +85,8 @@ public partial class Order : ObservableObject
         }
     }
 
+    public ObservableCollection<PurchaseItem> PurchaseItems { get; internal set; }
+
     //[ObservableProperty] private int retailCount;
 
     public Order(int index)
@@ -92,6 +95,7 @@ public partial class Order : ObservableObject
         CC = new();
         LinkCollection();
         purchaseHistoryItems = new();
+        paymentTransactions = new();
     }
 
     internal void LinkCollection()
@@ -158,7 +162,7 @@ public partial class Order : ObservableObject
     {
         try
         {
-            Date = DateTime.Now;
+            Date = DateOnly.FromDateTime(DateTime.Now);
             foreach (var item in CurrentImages)
             {
                 if (string.IsNullOrWhiteSpace(item.RootImageUrl)) continue;
@@ -286,7 +290,7 @@ public partial class Order : ObservableObject
         if(!Cart.Contains(purchaseItem))
         {
             Cart.Add(purchaseItem);
-            Date = DateTime.Now;
+            Date = DateOnly.FromDateTime(DateTime.Now);
         }
 
         UpdateCartTotal();
@@ -335,5 +339,6 @@ public enum PurchaseType
     [Description("Both card and cash payments")]
     Both = 4,
     [Description("Other payment type not listed here")]
-    Other = 5
+    Other = 5,
+    Bank = 6
 }

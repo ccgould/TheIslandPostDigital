@@ -1,0 +1,6 @@
+@IslandPostApi_HostAddress = http://localhost:5120
+
+GET {{IslandPostApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

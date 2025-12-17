@@ -8,15 +8,15 @@ internal class RipCurlPurchaseOrderCSVMap : ClassMap<RipCurlPurchaseOrder>
     public RipCurlPurchaseOrderCSVMap()
     {
         //use the converter on double or decimal types
-        Map(x => x.OrderNo).Index(0);
-        Map(x => x.ItemNumber).Index(1);
-        Map(x => x.ShippedQty).Index(2).TypeConverter<IntConverter>();
-        Map(x => x.StyleColor).Index(3);
-        Map(x => x.Desc).Index(4);
-        Map(x => x.Price).Index(5).TypeConverter<DecimalConverter>();
-        Map(x => x.Retail).Index(6).TypeConverter<DecimalConverter>();
-        Map(x => x.Divison).Index(7);
-        Map(x => x.Category).Index(8);
-        Map(x => x.Barcode).Index(9);
+        Map(x => x.OrderNo).Name("Order no");
+        Map(x => x.ItemNumber).Name("Item number");
+        Map(x => x.ShippedQty).Name("Shipped qty").TypeConverter<IntConverter>();
+        Map(x => x.StyleColor).Name("Style_Color");
+        Map(x => x.Desc).Name("Desc");
+        Map(x => x.Price).Name("Price").TypeConverter<DecimalConverter>();
+        Map(x => x.Retail).Name("Retail").TypeConverter<DecimalConverter>();
+        Map(x => x.Divison).Name("Division");
+        Map(x => x.Category).Name("Category");
+        Map(x => x.Barcode).Name("Barcode");
     }
 }

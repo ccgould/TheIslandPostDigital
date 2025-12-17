@@ -1,8 +1,16 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using ESCPOS_NET;
+using ESCPOS_NET.Emitters;
+using ESCPOS_NET.Utilities;
+using Syncfusion.Windows.Controls.Input;
 using System.Collections.ObjectModel;
+using System.Drawing.Printing;
+using System.IO;
+using System.Windows.Controls;
 using TheIslandPostManager.Models;
 using TheIslandPostManager.Services;
+using TheIslandPostManager.Views.Pages;
 using Wpf.Ui;
 using Wpf.Ui.Controls;
 
@@ -16,10 +24,11 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
     private readonly INavigationService navigationService;
     private readonly IContentDialogService contentDialogService;
     private readonly IFileService fileService;
+    private readonly POSPrinter printer;
     private IOrderService _orderService;
     [ObservableProperty] private ObservableCollection<PurchaseItem> purchaseItems;
-    [ObservableProperty] private ObservableCollection<PaymentTransaction> paymentTransactions;
     [ObservableProperty] private ObservableCollection<Employee> employees;
+    [ObservableProperty] private ObservableCollection<Customer> customers;
     [ObservableProperty] private bool isFlyoutOpen;
     [ObservableProperty] private bool showImageCountOverMessage;
     [ObservableProperty] private bool showPrintCountOverMessage;
@@ -28,7 +37,7 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
     [ObservableProperty] private int retailCount;
     private bool _managerBypass;
 
-    public CompleteOrderDialogViewModel(IOrderService orderService, IMySQLService mySQLService, IMessageService messageService,INavigationService navigationService, IContentDialogService contentDialogService,IFileService fileService)
+    public CompleteOrderDialogViewModel(IOrderService orderService, IMySQLService mySQLService, IMessageService messageService, INavigationService navigationService, IContentDialogService contentDialogService, IFileService fileService)
     {
         Employees = mySQLService.GetEmployees().Result;
         PrintCount = orderService.CurrentOrder.ApprovedPrints.Sum(x => x.PrintAmount);
@@ -38,19 +47,19 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
         this.navigationService = navigationService;
         this.contentDialogService = contentDialogService;
         this.fileService = fileService;
-        PaymentTransactions = new();
+        this.printer = printer;
         _orderService = orderService;
     }
 
     [RelayCommand]
     private async Task ItemClick(PurchaseItem purchaseItem)
     {
-        if (purchaseItem.IsRetailItem && purchaseItem.HasChildren()) 
+        if (purchaseItem.IsRetailItem && purchaseItem.HasChildren())
         {
-            var itemsDialog = new RetailItemsListPopup(contentDialogService.GetDialogHost(),purchaseItem.ChildrenItems);
+            var itemsDialog = new RetailItemsListPopup(contentDialogService.GetDialogHost(), purchaseItem.ChildrenItems);
             var dialogResult = await itemsDialog.ShowAsync();
 
-            if(dialogResult == ContentDialogResult.None)
+            if (dialogResult == ContentDialogResult.None)
             {
                 return;
             }
@@ -66,7 +75,7 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
             OrderService.CurrentOrder.AddItemToCart(purchaseItem);
         }
 
-        RetailCount = OrderService.CurrentOrder.Cart.Count(x=>x.IsRetailItem);
+        RetailCount = OrderService.CurrentOrder.Cart.Count(x => x.IsRetailItem);
     }
 
     [RelayCommand]
@@ -85,7 +94,7 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
         }
         else
         {
-            PaymentTransactions.Add(new PaymentTransaction(inputAsEnum,itemsDialog.GetBalanceAsDecimal()));
+            OrderService.CurrentOrder.PaymentTransactions.Add(new PaymentTransaction(inputAsEnum, itemsDialog.GetBalanceAsDecimal()));
 
             var totalAmount = itemsDialog.TotalAmount;
             var change = itemsDialog.Change;
@@ -120,7 +129,7 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
 
     private void DeletePaymentTransaction(PaymentTransaction transaction)
     {
-        PaymentTransactions.Remove(transaction);
+        OrderService.CurrentOrder.PaymentTransactions.Remove(transaction);
     }
 
     internal async Task<bool> CheckConditons()
@@ -134,21 +143,27 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
         var imageCount = 0;
         var printCount = 0;
 
-        if(OrderService.CurrentOrder.SelectedPurchaseType == PurchaseType.None)
-        {
-            await messageService.ShowMessage("Cash Type Not Choosen", "Please select if the transaction is Card, Cash or Both", "OK", ControlAppearance.Primary, false);
-            return false;
-        }
+        //if(OrderService.CurrentOrder.SelectedPurchaseType == PurchaseType.None)
+        //{
+        //    await messageService.ShowMessage("Cash Type Not Choosen", "Please select if the transaction is Card, Cash or Both", "OK", ControlAppearance.Primary, false);
+        //    return false;
+        //}
 
-        if (Employee is null)
-        {
-            await messageService.ShowMessage("Cashier Not Choosen", "Please select a cashier.", "OK", ControlAppearance.Primary, false);
-            return false;
-        }
+        //if (Employee is null)
+        //{
+        //    await messageService.ShowMessage("Cashier Not Choosen", "Please select a cashier.", "OK", ControlAppearance.Primary, false);
+        //    return false;
+        //}
 
         if (OrderService.CurrentOrder is null) return false;
 
-        foreach (var item in OrderService.CurrentOrder.Cart)
+        if (OrderService.CurrentOrder.ApprovedPrints.Any() && OrderService.CurrentOrder.Cart.Sum(x => x.ImageCount) == 0)
+        {
+            await messageService.ShowMessage("No Photo Package Selected.", $"Photos are selected but no photo package is selected please select appropriate package and try again");
+            return false;
+        }
+
+        foreach (var item in OrderService.CurrentOrder.Cart)  ///This is not checking for the selected images which is allowing you to print without selecting a photo package
         {
             imageCount += (item.ImageCount * item.Amount);
         }
@@ -164,7 +179,7 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
             return false;
         }
 
-        if(OrderService.CurrentOrder.Cart.Any(x => x.IsRetailItem == false))
+        if (OrderService.CurrentOrder.Cart.Any(x => x.IsRetailItem == false))
         {
             if (OrderService.CurrentOrder.ApprovedImagesCount <= 0)
             {
@@ -186,15 +201,21 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
                 return false;
             }
 
-            if (string.IsNullOrWhiteSpace(OrderService.CurrentOrder.Name) && OrderService.CurrentOrder.Cart.Any(x => x.IsRetailItem == false))
+            if (string.IsNullOrWhiteSpace(OrderService.CurrentOrder.Email) && OrderService.CurrentOrder.Cart.Any(x => x.ImageCount > 0))
             {
-                var result = await messageService.ShowMessage("No Name Provided", "Please check name field", "OK");
-
-                if (result == MessageBoxResult.None)
-                {
-                    return false;
-                }
+                messageService.ShowSnackBarMessage("Attention", "No email provided. Please provide an email to complete this order.", ControlAppearance.Caution, SymbolRegular.Stop20);
+                return false;
             }
+
+            //if (string.IsNullOrWhiteSpace(OrderService.CurrentOrder.Name) && OrderService.CurrentOrder.Cart.Any(x => x.IsRetailItem == false))
+            //{
+            //    var result = await messageService.ShowMessage("No Name Provided", "Please check name field", "OK");
+
+            //    if (result == MessageBoxResult.None)
+            //    {
+            //        return false;
+            //    }
+            //}
         }
         return true;
     }
@@ -225,51 +246,13 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
         OrderService.CurrentOrder.UpdateCartTotal();
     }
 
-    [RelayCommand]
-    internal async Task CompleteOrder()
-    {
-
-       // throw new DivideByZeroException();
-
-        try
-        {      
-            var result = await CheckConditons();
-
-            if (result)
-            {
-                OrderService.CurrentOrder.Name = OrderService.CurrentOrder.Name?.Trim() ?? string.Empty;
-                OrderService.CurrentOrder.Email = OrderService.CurrentOrder.Email?.Trim() ?? string.Empty;
-                OrderService.CurrentOrder.EmployeeID = Employee?.EmployeeID ?? -1;
-                OrderService.CurrentOrder.VideoCount = GetVideoCount();
-                await OrderService.CompleteOrderAsync();
-                navigationService.GoBack();
-
-
-                foreach (var item in PurchaseItems)
-                {
-                    item.ChangeAmount(0);
-                }
-            }
-
-            if(OrderService.GetOrderCount() == 0)
-            {
-                fileService.PurgeAll();
-            }
-
-        }
-        catch (Exception ex)
-        {
-           await messageService.ShowErrorMessage("Complete Order Error", ex.Message, ex.StackTrace, "952a5653-4a41-4119-81b8-b423faddb787", true);
-            navigationService.GoBack();
-        }
-    }
 
     private int GetVideoCount()
     {
-      var video =    OrderService.CurrentOrder.Cart.Where(x => x.Data == "RC3");
+        var video = OrderService.CurrentOrder.Cart.Where(x => x.Data == "RC3");
 
         int amount = 0;
-        if(video is not null)
+        if (video is not null)
         {
             foreach (var item in video)
             {
@@ -295,41 +278,6 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
 
     }
 
-    [RelayCommand]
-    internal async Task Override()
-    {
-        try
-        {
-            var result = messageService.ShowMessage("Authorization needed", "Sorry, you can't perform this action. Please have your manager assist you. Would you like to continue?", "NO", ControlAppearance.Primary, true);
-
-            if (result.Result == MessageBoxResult.Primary)
-            {
-                if (contentDialogService is not null)
-                {
-                    var dialog = new OverrideDialog(contentDialogService.GetDialogHost(), mySQLService);
-                    var dialogResult = await dialog.ShowAsync();
-
-                    if (dialogResult == ContentDialogResult.Primary)
-                    {
-                        if (mySQLService.ValidatePin(dialog.SelectedItem.EmployeeID, dialog.Link).Result)
-                        {
-                            _managerBypass = true;
-                            await CompleteOrder();
-                        }
-                        else
-                        {
-                            await messageService.ShowErrorMessage("Invalid Pin", "Incorrect Authorization PIN. Please try again.");
-                        }
-                    }
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            await messageService.ShowErrorMessage("Complete Order Error", ex.Message, ex.StackTrace, "4acdb1dc-e0cd-4a23-804c-4308f709cbcc", true);
-        }
-    }
-
     internal void GetCartItems()
     {
         PurchaseItems = mySQLService.GetProducts(App.IsRetailPage)?.Result;
@@ -349,5 +297,26 @@ public partial class CompleteOrderDialogViewModel : ObservableObject
                 }
             }
         }
+    }
+
+    [RelayCommand]
+    private async Task Pay()
+    {
+        if (await CheckConditons())
+        {
+            OrderService.CurrentOrder.EmployeeID = Employee?.EmployeeID ?? -1;
+            OrderService.CurrentOrder.PurchaseItems = purchaseItems;
+            navigationService.Navigate(typeof(CheckOutPage));
+        }
+    }
+
+    static void StatusChanged(object sender, EventArgs ps)
+    {
+        var status = (PrinterStatusEventArgs)ps;
+        Console.WriteLine($"Status: {status.IsPrinterOnline}");
+        Console.WriteLine($"Has Paper? {status.IsPaperOut}");
+        Console.WriteLine($"Paper Running Low? {status.IsPaperLow}");
+        Console.WriteLine($"Cash Drawer Open? {status.IsCashDrawerOpen}");
+        Console.WriteLine($"Cover Open? {status.IsCoverOpen}");
     }
 }

@@ -49,6 +49,7 @@ public partial class MainWindowViewModel : ObservableObject
                 Content = "Orders",
                 Icon = new SymbolIcon { Symbol = SymbolRegular.DataHistogram24 },
                 TargetPageType = typeof(Views.Pages.OrdersPage),
+                Visibility = System.Windows.Visibility.Collapsed,
                 IsTabStop = false,
                 
             },
@@ -57,6 +58,7 @@ public partial class MainWindowViewModel : ObservableObject
                 Content = "Pending Orders",
                 Icon = new SymbolIcon { Symbol = SymbolRegular.Clock24 },
                 TargetPageType = typeof(Views.Pages.PendingOrdersPage),
+                Visibility = System.Windows.Visibility.Collapsed,
                 IsTabStop = false
             },
 
@@ -65,6 +67,7 @@ public partial class MainWindowViewModel : ObservableObject
                 Content = "Backup",
                 Icon = new SymbolIcon { Symbol = SymbolRegular.Server16 },
                 TargetPageType = typeof(Views.Pages.BackupPage),
+                Visibility = System.Windows.Visibility.Collapsed,
                 IsTabStop = false
             },
              new NavigationViewItem()
@@ -72,6 +75,7 @@ public partial class MainWindowViewModel : ObservableObject
                 Content = "Earnings",
                 Icon = new SymbolIcon { Symbol = SymbolRegular.Money24 },
                 TargetPageType = typeof(Views.Pages.EarningsPage),
+                Visibility = System.Windows.Visibility.Collapsed,
                 IsTabStop = false
             },
 

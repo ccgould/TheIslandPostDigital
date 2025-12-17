@@ -1,150 +1,172 @@
-﻿using Dapper;
+﻿using InventoryPro.Enumerators;
+using InventoryPro.Models;
 using InventoryPro.Models.Crocs;
+using SQLite;
+using System;
+using System.Collections.Generic;
 using System.Configuration;
-using System.Data;
-using System.Data.SQLite;
+using System.IO;
+using System.Linq;
 
 namespace InventoryPro.Services;
-public class SqliteDataAccess
+
+public static partial class SqliteDataAccess
 {
-    public static List<MaterialObject> LoadMaterials()
-    {
-        using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
-        {
-            var output = cnn.Query<MaterialObject>("Select * from tbl_material", new DynamicParameters());
-            return output.ToList();
-        }
-    }
-
-    public static MaterialObject FindItemInMaterialsWithUPC(string upc)
-    {
-        using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
-        {
-            var output = cnn.Query<MaterialObject>($"Select * from tbl_material Where upc = {upc}");
-            foreach (MaterialObject materialObject in output)
-            {
-                return materialObject;
-            }
-        }
-
-        return null;
-    }
-
-    public static MaterialObject FindUPCInMaterialsWithItem(string materialSize)
-    {
-        using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
-        {
-            var output = cnn.Query<MaterialObject>($"Select * from tbl_material Where MaterialSize = '{materialSize}'");
-            foreach (MaterialObject materialObject in output)
-            {
-                return materialObject;
-            }
-        }
-
-        return null;
-    }
-
-    public static void SaveMaterials(MaterialObject material)
-    {
-        using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
-        {
-            cnn.Execute("insert into tbl_material (MaterialNumber,MaterialDescription,Color,ColorText,MaterialGroup,MaterialSize,BaseUOM,UPC,EANCategory,EANCategoryDescription,Size,Quality) values (@MaterialNumber,@MaterialDescription,@Color,@ColorText,@MaterialGroup,@MaterialSize,@BaseUOM,@UPC,@EANCategory,@EANCategoryDescription,@Size,@Quality)", material);
-        }
-    }
-
     private static string LoadConnectionString(string id = "Default")
     {
         return ConfigurationManager.ConnectionStrings[id].ConnectionString;
     }
-
-    internal static void AddCorrectedDescription(string original,string edited)
+    private static SQLiteConnection GetConnection()
     {
-        using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
-        {
-            cnn.Execute("insert into tbl_descriptions(originalDesc,editedDesc) values (@val,@val2)", new { val = original,val2=edited });
-        }
+        var dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "materials.db");
+        return new SQLiteConnection(dbPath);
+
     }
 
-    internal static bool CheckForCorrectedDesc(string description, out string result)
+    public static List<MaterialObject> LoadMaterials()
     {
-        try
+        using var db = GetConnection();
+        return db.Table<MaterialObject>().ToList();
+    }
+
+    public static MaterialObject FindItemInMaterialsWithUPC(string upc)
+    {
+        using var db = GetConnection();
+        return db.Table<MaterialObject>().FirstOrDefault(m => m.UPC == upc);
+    }
+
+    public static MaterialObject FindUPCInMaterialsWithItem(string materialSize)
+    {
+        using var db = GetConnection();
+        return db.Table<MaterialObject>().FirstOrDefault(m => m.MaterialSize == materialSize);
+    }
+
+    public static void SaveMaterials(MaterialObject material)
+    {
+        using var db = GetConnection();
+        db.Insert(material);
+    }
+
+    public static void AddCorrectedDescription(string original, string edited)
+    {
+        using var db = GetConnection();
+        db.Insert(new Description { OriginalDesc = original, EditedDesc = edited });
+    }
+
+    public static bool CheckForCorrectedDesc(string description, out string result)
+    {
+        using var db = GetConnection();
+        var match = db.Table<Description>().FirstOrDefault(d => d.OriginalDesc == description);
+        if (match != null)
         {
-            using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
-            {
-                var output = cnn.QuerySingleOrDefault<Decription>($"select * from tbl_descriptions where originalDesc = @val", new { val = description });
-                if(output is not null)
-                {
-                    result = output.EditedDesc;
-                    return true;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show("Error", ex.Message);
+            result = match.EditedDesc;
+            return true;
         }
 
         result = string.Empty;
         return false;
     }
 
-    internal static bool GetDCSCode(RipCurlPurchaseOrder purchaseOrder,out string result)
+    public static bool GetDCSCode(RipCurlPurchaseOrder purchaseOrder, out string result)
     {
-        try
+        using var db = GetConnection();
+        //var match = db.Table<Department>().FirstOrDefault(d =>
+        //    d.Division.Trim() == purchaseOrder.Divison &&
+        //    d.Category.Trim() == purchaseOrder.Category);
+
+        Department match = null;
+
+        foreach (Department department in db.Table<Department>())
         {
-            using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
+            if(department.Division.Trim().Equals(purchaseOrder.Divison.Trim()) &&
+                department.Category.Trim().Equals(purchaseOrder.Category.Trim()))
             {
-                var output = cnn.QueryFirstOrDefault<Department>($"select * from tbl_departments where Division = @division AND Category = @category", new { division = purchaseOrder.Divison.Trim(), category = purchaseOrder.Category.Trim() });
-                if (output is not null)
-                {
-                    result = output.DCS;
-                    return true;
-                }
-                else
-                {
-                   // result = string.Empty;
-                }
+                match = department;
+                break;  
             }
         }
-        catch (Exception ex)
+
+        if (match != null)
         {
-            MessageBox.Show("Error", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            result = match.DCS;
+            return true;
         }
 
         result = string.Empty;
         return false;
     }
 
-    internal static string? GetDepartmentsInfo(string column)
+    public static void InsertPOHistory(List<POHistory> historyList)
     {
-        try
+        using var db = GetConnection();
+        db.RunInTransaction(() =>
         {
-            //using (IDbConnection cnn = new SQLiteConnection(LoadConnectionString()))
-            //{
-            //    var output = cnn.QueryFirstOrDefault<Department>($"select * from tbl_departments where Division = @division AND Category = @category", new { division = purchaseOrder.Divison.Trim(), category = purchaseOrder.Category.Trim() });
-            //    if (output is not null)
-            //    {
-            //        //result = output.DCS;
-            //        return output.DCS;
-            //    }
-            //    else
-            //    {
-
-            //    }
-            //}
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show("Error", ex.Message, MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-
-       // result = string.Empty;
-        return string.Empty;
+            foreach (var entry in historyList)
+            {
+                db.Insert(entry);
+            }
+        });
     }
 
-    private class Decription
+    public static List<POHistory> GetFilteredHistory(DateTime date, string upc, string fileName)
     {
-        public string OriginalDesc { get; set; }
-        public string EditedDesc { get; set; }
+        var dateString = date.ToString("yyyy-MM-dd");
+        using var db = GetConnection();
+
+        var query = db.Table<POHistory>().Where(p => p.DateString == dateString);
+
+        if (!string.IsNullOrWhiteSpace(upc))
+        {
+            query = query.Where(p => p.UPC == upc);
+        }
+
+        if (!string.IsNullOrWhiteSpace(fileName))
+        {
+            query = query.Where(p => p.FileName.Contains(fileName));
+        }
+
+        return query.ToList();
     }
+
+
+    // CREATE
+    public static void InsertDepartment(Department department)
+    {
+        using var db = GetConnection();
+        db.Insert(department);
+    }
+
+    // READ ALL
+    public static List<Department> LoadAllDepartments()
+    {
+        using var db = GetConnection();
+        return db.Table<Department>().ToList();
+    }
+
+    // READ BY Division + Category
+    public static Department GetByDivisionAndCategory(string division, string category)
+    {
+        using var db = GetConnection();
+        return db.Table<Department>()
+                 .FirstOrDefault(d => d.Division == division && d.Category == category);
+    }
+
+    // UPDATE
+    public static void UpdateDepartment(Department department)
+    {
+        using var db = GetConnection();
+        db.Update(department);
+    }
+
+    // DELETE
+    public static void DeleteDepartment(int id)
+    {
+        using var db = GetConnection();
+        var dept = db.Table<Department>().FirstOrDefault(d => d.Id == id);
+        if (dept != null)
+        {
+            db.Delete(dept);
+        }
+    }
+
 }

@@ -41,7 +41,6 @@ partial class DuplicateForm
         dESC2DataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
         sIZEDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
         qtyDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
-        upcDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
         vencodeDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
         uDF3DataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
         uDF4DataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
@@ -79,7 +78,7 @@ partial class DuplicateForm
         // 
         dataGridView.AutoGenerateColumns = false;
         dataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-        dataGridView.Columns.AddRange(new DataGridViewColumn[] { pONumberDataGridViewTextBoxColumn, aLUDataGridViewTextBoxColumn, aTTRDataGridViewTextBoxColumn, dESC1DataGridViewTextBoxColumn, dESC2DataGridViewTextBoxColumn, sIZEDataGridViewTextBoxColumn, qtyDataGridViewTextBoxColumn, upcDataGridViewTextBoxColumn, vencodeDataGridViewTextBoxColumn, uDF3DataGridViewTextBoxColumn, uDF4DataGridViewTextBoxColumn, dCSDataGridViewTextBoxColumn, pOTYPEDataGridViewTextBoxColumn, bILLTODataGridViewTextBoxColumn, sHIPTODataGridViewTextBoxColumn, pOVendCodeDataGridViewTextBoxColumn, pOPriceDataGridViewTextBoxColumn, pOCOSTDataGridViewTextBoxColumn, pRICEDataGridViewTextBoxColumn, pOPENDINGDataGridViewTextBoxColumn });
+        dataGridView.Columns.AddRange(new DataGridViewColumn[] { pONumberDataGridViewTextBoxColumn, aLUDataGridViewTextBoxColumn, aTTRDataGridViewTextBoxColumn, dESC1DataGridViewTextBoxColumn, dESC2DataGridViewTextBoxColumn, sIZEDataGridViewTextBoxColumn, qtyDataGridViewTextBoxColumn, vencodeDataGridViewTextBoxColumn, uDF3DataGridViewTextBoxColumn, uDF4DataGridViewTextBoxColumn, dCSDataGridViewTextBoxColumn, pOTYPEDataGridViewTextBoxColumn, bILLTODataGridViewTextBoxColumn, sHIPTODataGridViewTextBoxColumn, pOVendCodeDataGridViewTextBoxColumn, pOPriceDataGridViewTextBoxColumn, pOCOSTDataGridViewTextBoxColumn, pRICEDataGridViewTextBoxColumn, pOPENDINGDataGridViewTextBoxColumn });
         dataGridView.DataSource = purchaseOrderExportBindingSource;
         dataGridView.Dock = DockStyle.Fill;
         dataGridView.Location = new Point(3, 23);
@@ -144,14 +143,6 @@ partial class DuplicateForm
         qtyDataGridViewTextBoxColumn.MinimumWidth = 6;
         qtyDataGridViewTextBoxColumn.Name = "qtyDataGridViewTextBoxColumn";
         qtyDataGridViewTextBoxColumn.Width = 125;
-        // 
-        // upcDataGridViewTextBoxColumn
-        // 
-        upcDataGridViewTextBoxColumn.DataPropertyName = "Upc";
-        upcDataGridViewTextBoxColumn.HeaderText = "Upc";
-        upcDataGridViewTextBoxColumn.MinimumWidth = 6;
-        upcDataGridViewTextBoxColumn.Name = "upcDataGridViewTextBoxColumn";
-        upcDataGridViewTextBoxColumn.Width = 125;
         // 
         // vencodeDataGridViewTextBoxColumn
         // 
@@ -260,7 +251,7 @@ partial class DuplicateForm
         deleteBtn.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
         deleteBtn.Image = (Image)resources.GetObject("deleteBtn.Image");
         deleteBtn.ImageAlign = ContentAlignment.TopCenter;
-        deleteBtn.Location = new Point(675, 334);
+        deleteBtn.Location = new Point(636, 334);
         deleteBtn.Name = "deleteBtn";
         deleteBtn.Size = new Size(104, 104);
         deleteBtn.TabIndex = 6;
@@ -276,7 +267,7 @@ partial class DuplicateForm
         mergeBtn.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
         mergeBtn.Image = (Image)resources.GetObject("mergeBtn.Image");
         mergeBtn.ImageAlign = ContentAlignment.TopCenter;
-        mergeBtn.Location = new Point(552, 334);
+        mergeBtn.Location = new Point(513, 334);
         mergeBtn.Name = "mergeBtn";
         mergeBtn.Size = new Size(104, 104);
         mergeBtn.TabIndex = 5;

@@ -299,7 +299,7 @@ public class FileService : IFileService
         {
             CleanInputDirectory();
             CleanYearDirectory();
-            CleanDirectory();
+            //CleanDirectory();
         }
     }
 
@@ -367,12 +367,12 @@ public class FileService : IFileService
             {
                 if(year < DateTime.Now.Year)
                 {
-                    Directory.Delete(dir);
+                    Directory.Delete(dir,true);
                 }
             }
             else
             {
-                Directory.Delete(dir);
+                Directory.Delete(dir,true);
             }
         }
     }

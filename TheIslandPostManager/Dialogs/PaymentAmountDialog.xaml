@@ -1,0 +1,62 @@
+﻿<ui:ContentDialog x:Class="TheIslandPostManager.Dialogs.PaymentAmountDialog"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:TheIslandPostManager.Dialogs"
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      mc:Ignorable="d"
+      d:DesignHeight="150"
+      d:DesignWidth="850"
+      ui:Design.Background="{DynamicResource ApplicationBackgroundBrush}"
+      ui:Design.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+      CloseButtonText="Cancel"
+      CloseButtonAppearance="Primary"
+      PrimaryButtonText="Ok"
+      PrimaryButtonAppearance="Success"
+      IsPrimaryButtonEnabled="True"
+      x:Name="dialog"
+      ScrollViewer.CanContentScroll="False">
+
+    <ui:ContentDialog.Resources>
+        <Style BasedOn="{StaticResource {x:Type ui:ContentDialog}}" TargetType="{x:Type local:PaymentAmountDialog}" />
+    </ui:ContentDialog.Resources>
+
+
+    <Grid MinWidth="600">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        
+        <ui:TextBlock Text="Amount to pay"/>
+
+        <ui:TextBlock Text="{Binding ElementName=dialog, Path=Amount, UpdateSourceTrigger=PropertyChanged}"
+                      HorizontalAlignment="Right"
+                      Grid.Column="1"/>
+
+        <ui:TextBlock Text="Amount given by customer"
+                      Grid.Row="1"
+                      Grid.ColumnSpan="2"
+                      Margin="0,0,0,10"/>
+
+        <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <ui:NumberBox Icon="NumberSymbolSquare24" PlaceholderText="Enter Cash Amount" Value="{Binding ElementName=dialog, Path=Amount, UpdateSourceTrigger=PropertyChanged}"  MaxDecimalPlaces="2" MinWidth="190"/>
+            <ui:Button Content="$15" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="5,0,5,0"/>
+            <ui:Button Content="$25" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="5,0,5,0"/>
+            <ui:Button Content="$50" Grid.Column="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="5,0,5,0"/>
+        </Grid>
+    </Grid>
+</ui:ContentDialog>

@@ -262,6 +262,9 @@ public  class ImagesControlModule : Control
             case "pendOrder":
                 await viewModel.PendOrder();
                 break;
+            case "exportOrder":
+                await viewModel.ExportOrder();
+                break;
         }
     }
 

@@ -1,10 +1,15 @@
 ﻿
 using CsvHelper.Configuration.Attributes;
+using InventoryPro.Interface;
 using InventoryPro.Services;
 
 namespace InventoryPro.Models.Crocs;
-public class RipCurlPurchaseOrderExport
+public class RipCurlPurchaseOrderExport : IExportObject
 {
+    public RipCurlPurchaseOrderExport()
+    {
+        
+    }
     public RipCurlPurchaseOrderExport(RipCurlPurchaseOrder purchaseOrder)
     {
         LocalUPC = purchaseOrder.Barcode;
@@ -27,7 +32,7 @@ public class RipCurlPurchaseOrderExport
         CancelDate = DateTime.Now.ToString("MM/dd/yyyy");
         POPrice = Math.Round(purchaseOrder.Retail, 2);
         POCost = Math.Round(purchaseOrder.Price, 2);
-        OrderQty = purchaseOrder.ShippedQty;
+        Qty = purchaseOrder.ShippedQty;
     }
 
     private string? GetAttr(string styleColor)
@@ -127,15 +132,28 @@ public class RipCurlPurchaseOrderExport
     [Name("PO Cost")]
     public decimal POCost { get; set; }
     [Name("Order Qty")]
-    public int OrderQty { get; set; }
+    public int Qty { get; set; }
     [Name("Bill To Store Number")]
     public int BillToStoreNumber { get; set; } = 0;
     [Name("Ship To Store Number")]
     public int ShipToStoreNumber { get; set; } = 0;
-
+    public string FilePath { get; set; }
 
     public override string? ToString()
     {
-        return $"{LocalUPC} | {OrderQty}";
+        return $"{LocalUPC} | {Qty}";
+    }
+
+    public POHistory GetPOHistory(bool isCrocs)
+    {
+
+        return new POHistory
+        {
+            FileName = Path.GetFileName(FilePath),
+            Store = isCrocs ? Enumerators.Store.Crocs : Enumerators.Store.RipCurl,
+            DateString = DateTime.Now.ToString("yyyy-MM-dd"),
+            UPC = this.UPC,
+            Qty = this.Qty
+        };
     }
 }

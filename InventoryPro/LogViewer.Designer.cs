@@ -87,6 +87,7 @@ partial class LogViewer
         Controls.Add(groupBox2);
         Controls.Add(groupBox1);
         Name = "LogViewer";
+        StartPosition = FormStartPosition.CenterParent;
         Text = "Log Viewer";
         Load += LogViewer_Load;
         groupBox1.ResumeLayout(false);

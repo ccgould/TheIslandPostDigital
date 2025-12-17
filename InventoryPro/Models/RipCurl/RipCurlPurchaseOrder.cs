@@ -12,5 +12,4 @@ public class RipCurlPurchaseOrder
     public string Divison { get; set; }
     public string Category { get; set; }
     public string Barcode { get; set; }
-
 }

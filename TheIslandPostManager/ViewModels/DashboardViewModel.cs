@@ -282,4 +282,17 @@ public partial class DashboardViewModel : ObservableObject
     {
         OrderService.CurrentOrder.RefreshImages(content);
     }
+
+    [RelayCommand]
+    internal async Task ExportOrder()
+    {
+        try
+        {
+            await OrderService.ExportOrder();
+        }
+        catch (Exception ex)
+        {
+            await messageService.ShowErrorMessage("Error", ex.Message, ex.StackTrace, "", true);
+        }        
+    }
 }
